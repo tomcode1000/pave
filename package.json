@@ -1,0 +1,27 @@
+{
+  "name": "pave",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Pave: credit backed by people who believe in you. Friends lock $WIF behind your wallet on Robinhood Chain.",
+  "license": "MIT",
+  "scripts": {
+    "build": "hardhat compile",
+    "test": "hardhat test test/Pave.test.ts",
+    "test:fork": "cross-env FORK=1 hardhat test test/Pave.fork.test.ts"
+  },
+  "devDependencies": {
+    "@nomicfoundation/hardhat-network-helpers": "1.1.2",
+    "@nomicfoundation/hardhat-viem": "2.1.5",
+    "@types/chai": "4.3.20",
+    "@types/chai-as-promised": "7.1.8",
+    "@types/mocha": "10.0.10",
+    "@types/node": "22.20.5",
+    "chai": "4.5.0",
+    "chai-as-promised": "7.1.2",
+    "cross-env": "7.0.3",
+    "hardhat": "2.29.1",
+    "ts-node": "10.9.2",
+    "typescript": "5.9.3",
+    "viem": "2.57.4"
+  }
+}
