@@ -85,3 +85,21 @@ contract MockAggregator {
         return (1, answer, updatedAt, updatedAt, 1);
     }
 }
+
+/// Testnet only: an ETH/USD "feed" that anyone can set and that is always fresh.
+contract TestnetFeed {
+    uint8 public constant decimals = 8;
+    int256 public answer;
+
+    constructor(int256 a) {
+        answer = a;
+    }
+
+    function set(int256 a) external {
+        answer = a;
+    }
+
+    function latestRoundData() external view returns (uint80, int256, uint256, uint256, uint80) {
+        return (1, answer, block.timestamp, block.timestamp, 1);
+    }
+}

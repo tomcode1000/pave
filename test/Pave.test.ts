@@ -40,6 +40,7 @@ const CONFIG = {
   voucherShareBps: 3_000n,
   caps: [USDG(10), USDG(25), USDG(50), USDG(100)] as [bigint, bigint, bigint, bigint],
   feedMaxAge: 26n * HOUR,
+  markPeriod: HOUR,
 };
 
 async function setup(opts: { wifIsCurrency1?: boolean } = {}) {

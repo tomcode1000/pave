@@ -21,6 +21,7 @@ const HOUR = 3_600n;
 /// The live parameters. Small on purpose: this is a hackathon pool, not a bank.
 export const PARAMS = {
   feedMaxAge: 26n * HOUR, // heartbeat 24 h + margin
+  markPeriod: HOUR, // 24 hourly price marks
   ltvBps: 4_000n, // borrow up to 40% of the mature vouches' value
   vouchMaturity: 3n * DAY,
   minVouch: 10_000n * 10n ** 18n, // ~ $13 of $WIF
@@ -30,4 +31,13 @@ export const PARAMS = {
   voucherShareBps: 3_000n, // 30% of the fee goes to the vouchers
   // dirt $10, gravel $25, cobblestone $50, highway $100
   caps: [10_000_000n, 25_000_000n, 50_000_000n, 100_000_000n] as [bigint, bigint, bigint, bigint],
+};
+
+/// Testnet: the same rules on a fast clock, so a whole loan and a default fit in under an hour.
+export const TEST_PARAMS = {
+  ...PARAMS,
+  markPeriod: 60n, // price marks a minute long (24 minutes of memory)
+  vouchMaturity: 2n * 60n,
+  loanTerm: 10n * 60n,
+  grace: 2n * 60n,
 };

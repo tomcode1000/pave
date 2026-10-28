@@ -106,6 +106,8 @@ contract Pave {
     bool public immutable wifIsCurrency1;
     IAggregator public immutable ethUsd;
     uint256 public immutable feedMaxAge;
+    /// Length of one price mark in seconds (3600 on mainnet: 24 marks = the last 24 hours).
+    uint256 public immutable markPeriod;
 
     uint256 public immutable ltvBps;
     uint256 public immutable vouchMaturity;
@@ -194,6 +196,7 @@ contract Pave {
         bool wifIsCurrency1;
         address ethUsd;
         uint256 feedMaxAge;
+        uint256 markPeriod;
         uint256 ltvBps;
         uint256 vouchMaturity;
         uint256 minVouch;
@@ -208,7 +211,7 @@ contract Pave {
         if (
             c.wif == address(0) || c.usdg == address(0) || c.stateView == address(0) || c.ethUsd == address(0)
                 || c.ltvBps == 0 || c.ltvBps * SLASH_MULTIPLE > BPS || c.feeBps > 2_000 || c.voucherShareBps > BPS
-                || c.loanTerm == 0 || c.minVouch == 0 || c.feedMaxAge == 0 || c.caps[0] == 0 || c.caps[0] > c.caps[1]
+                || c.loanTerm == 0 || c.minVouch == 0 || c.feedMaxAge == 0 || c.markPeriod == 0 || c.caps[0] == 0 || c.caps[0] > c.caps[1]
                 || c.caps[1] > c.caps[2] || c.caps[2] > c.caps[3]
         ) revert BadConfig();
         if (IAggregator(c.ethUsd).decimals() != 8) revert BadConfig();
@@ -219,6 +222,7 @@ contract Pave {
         wifIsCurrency1 = c.wifIsCurrency1;
         ethUsd = IAggregator(c.ethUsd);
         feedMaxAge = c.feedMaxAge;
+        markPeriod = c.markPeriod;
         ltvBps = c.ltvBps;
         vouchMaturity = c.vouchMaturity;
         minVouch = c.minVouch;
@@ -303,7 +307,7 @@ contract Pave {
         uint256 low = _checkpoint();
         // The price must have been seen in an earlier hour too: with an empty memory, a price
         // pumped inside this very transaction would be the only one counted.
-        if (!_hasHistory(block.timestamp / 3600)) revert NoPriceHistory();
+        if (!_hasHistory(block.timestamp / markPeriod)) revert NoPriceHistory();
         (, uint256 matureWif) = _sums(msg.sender);
         uint256 backed = (_wifToUsdg(matureWif, low, _ethUsd()) * ltvBps) / BPS;
         uint256 cap = _cap(p.repaid);
@@ -490,7 +494,7 @@ contract Pave {
     /// the spot and the marks of the last 24 hours.
     function _checkpoint() internal returns (uint256 low) {
         uint256 spot = _spotWifPerEthX96();
-        uint256 hour = block.timestamp / 3600;
+        uint256 hour = block.timestamp / markPeriod;
         Mark storage m = _marks[hour % WINDOW_HOURS];
         if (m.hour != hour) {
             m.hour = uint32(hour);
@@ -560,7 +564,7 @@ contract Pave {
         c.level = _level(c.path.repaid);
         c.levelCap = _cap(c.path.repaid);
         c.vouchers = _vouches[borrower].length;
-        uint256 low = _low(_spotWifPerEthX96(), block.timestamp / 3600);
+        uint256 low = _low(_spotWifPerEthX96(), block.timestamp / markPeriod);
         c.matureUsdg = _wifToUsdg(c.matureWif, low, _ethUsd());
         c.backed = (c.matureUsdg * ltvBps) / BPS;
         if (!c.path.defaulted && c.loan.principal == 0) {
@@ -597,7 +601,7 @@ contract Pave {
         returns (uint256 spotX96, uint256 lowX96, uint256 ethUsd8, uint256 millionAtSpot, uint256 millionAtLow)
     {
         spotX96 = _spotWifPerEthX96();
-        lowX96 = _low(spotX96, block.timestamp / 3600);
+        lowX96 = _low(spotX96, block.timestamp / markPeriod);
         ethUsd8 = _ethUsd();
         millionAtSpot = _wifToUsdg(1_000_000e18, spotX96, ethUsd8);
         millionAtLow = _wifToUsdg(1_000_000e18, lowX96, ethUsd8);
