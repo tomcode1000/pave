@@ -3,3 +3,5 @@ artifacts/
 cache/
 .env
 deployments/local.json
+web/node_modules/
+web/dist/

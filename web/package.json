@@ -1,0 +1,15 @@
+{
+  "name": "pave-web",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Pave site: the flat map of roads, your road, vouching, lending",
+  "license": "MIT",
+  "scripts": {
+    "build": "node build.mjs",
+    "serve": "node serve.mjs"
+  },
+  "devDependencies": {
+    "esbuild": "0.28.2",
+    "viem": "2.57.4"
+  }
+}

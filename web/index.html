@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Pave: credit from people who believe in you</title>
+  <meta name="description" content="Friends lock $WIF behind your wallet. You borrow, repay, and pave your own road. On Robinhood Chain.">
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="bar">
+    <a class="mark" href="./" aria-label="Pave home">
+      <svg viewBox="0 0 32 32" class="mark__icon" aria-hidden="true"><path d="M4 22 L28 22" stroke="currentColor" stroke-opacity=".25" stroke-width="5" stroke-linecap="round"/><path d="M4 22 L18 22" stroke="var(--lime)" stroke-width="5" stroke-linecap="round"/><circle cx="8" cy="11" r="3" fill="var(--lime)"/><circle cx="15" cy="8" r="3.5" fill="currentColor"/><circle cx="22" cy="12" r="2.5" fill="currentColor" fill-opacity=".5"/></svg>
+      <span>Pave</span>
+    </a>
+    <span class="net" data-net>—</span>
+    <button class="btn btn--ghost" data-act="connect">Connect wallet</button>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="hero__copy">
+        <p class="eyebrow">Credit is the last unflat thing</p>
+        <h1>Borrow because people<br>believe in you.</h1>
+        <p class="lede">Friends lock $WIF behind your wallet. You borrow a little USDG, repay, and your road grows from dirt to highway. Not where you were born. Who backs you.</p>
+      </div>
+      <dl class="stats" data-stats>
+        <div><dt>Pool</dt><dd data-k="pool">—</dd></div>
+        <div><dt>Lent out</dt><dd data-k="out">—</dd></div>
+        <div><dt>Roads</dt><dd data-k="roads">—</dd></div>
+        <div><dt>$WIF behind people</dt><dd data-k="vouched">—</dd></div>
+        <div><dt>$WIF burned</dt><dd data-k="burned">—</dd></div>
+        <div><dt>1M $WIF</dt><dd data-k="price">—</dd></div>
+      </dl>
+    </section>
+
+    <section class="map-wrap" aria-label="The flat map">
+      <div class="map-head">
+        <h2>The flat map</h2>
+        <p>Every road is a person. Each repaid loan lays a stretch. Stones are the $WIF behind them. When two people back each other, their roads connect.</p>
+      </div>
+      <div class="map" data-map></div>
+      <ul class="legend">
+        <li><i class="sw sw--0"></i><span>Dirt path · up to $<span data-cap="0">10</span></span></li>
+        <li><i class="sw sw--1"></i><span>Gravel · $<span data-cap="1">25</span></span></li>
+        <li><i class="sw sw--2"></i><span>Cobblestone · $<span data-cap="2">50</span></span></li>
+        <li><i class="sw sw--3"></i><span>Highway · $<span data-cap="3">100</span></span></li>
+        <li><i class="sw sw--x"></i>Cracked (defaulted)</li>
+      </ul>
+    </section>
+
+    <nav class="tabs" role="tablist">
+      <button role="tab" data-tab="road" aria-selected="true">Your road</button>
+      <button role="tab" data-tab="vouch" aria-selected="false">Vouch</button>
+      <button role="tab" data-tab="lend" aria-selected="false">Lend</button>
+      <button role="tab" data-tab="believers" aria-selected="false">Believers</button>
+    </nav>
+
+    <section class="panel" data-panel="road"></section>
+    <section class="panel" data-panel="vouch" hidden></section>
+    <section class="panel" data-panel="lend" hidden></section>
+    <section class="panel" data-panel="believers" hidden></section>
+
+    <section class="panel panel--test" data-test hidden></section>
+  </main>
+
+  <div class="toast" data-toast role="status" aria-live="polite" hidden></div>
+
+  <footer class="foot">
+    <p>Pave has no owner and no admin: the rules are fixed in the contract. Loans are small on purpose. $WIF is a memecoin; vouch and lend only what you can afford to lose. Not affiliated with Robinhood.</p>
+    <p data-links></p>
+  </footer>
+  <script src="app.js"></script>
+</body>
+</html>
