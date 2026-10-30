@@ -15,7 +15,11 @@ const config: HardhatUserConfig = {
     // Pons pool and Chainlink feed (test/Pave.fork.test.ts).
     hardhat: process.env.FORK
       ? { chainId: 4663, forking: { url: RPC, ...(process.env.FORK_BLOCK ? { blockNumber: Number(process.env.FORK_BLOCK) } : {}) } }
-      : { accounts: { count: 30 } },
+      : {
+          accounts: { count: 30 },
+          // LOCAL_NODE=1 (the local site): a block every 5 s, so the chain's clock keeps moving.
+          ...(process.env.LOCAL_NODE ? { mining: { auto: true, interval: 5_000 } } : {}),
+        },
     // Robinhood Chain testnet: test tokens and a settable price (scripts/deploy.ts).
     robinhoodTestnet: {
       url: process.env.ROBINHOOD_TESTNET_RPC ?? "https://rpc.testnet.chain.robinhood.com",

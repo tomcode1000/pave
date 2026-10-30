@@ -2,6 +2,7 @@ import {
   createPublicClient, createWalletClient, custom, http, defineChain, isAddress, getAddress,
   BaseError, ContractFunctionRevertedError, UserRejectedRequestError,
 } from 'viem'
+import { privateKeyToAccount, generatePrivateKey } from 'viem/accounts'
 
 /*
   The Pave site. Everything is read from the chain: the contract's views for numbers, and its
@@ -104,7 +105,7 @@ const tryRead = async (...a) => { try { return await read(...a) } catch { return
 async function send(label, functionName, args = [], address = S.dep.Pave, abi = S.abis.Pave) {
   if (!S.wallet) throw new Error('Connect a wallet first.')
   await ensureChain()
-  const { request } = await S.pub.simulateContract({ address, abi, functionName, args, account: S.me })
+  const { request } = await S.pub.simulateContract({ address, abi, functionName, args, account: S.wallet.account })
   const hash = await S.wallet.writeContract(request)
   toast(`${label}: waiting for the chain…`)
   const rc = await S.pub.waitForTransactionReceipt({ hash })
@@ -130,12 +131,41 @@ async function act(label, fn) {
     toast(explain(e), 'err')
   } finally {
     S.busy = false
+    // Re-enable everything (the panels are redrawn next, with their own disabled states; the
+    // bar's buttons are not redrawn, so they must be switched back on here).
+    $$('[data-act]').forEach((b) => { b.disabled = false })
     await refresh()
     await findOverdue().then(render).catch(() => {})
   }
 }
 
+// ------------------------------------------------------------------ local demo wallets
+// On the local chain only: four throwaway people (A-D) whose keys live in this browser, funded
+// with local test ETH, so anyone can play the borrower and the friends without a wallet app.
+const DEMO = ['A', 'B', 'C', 'D']
+const isLocal = () => S.dep?.chainId === 31337
+const store = { get: (k) => { try { return localStorage.getItem(k) } catch { return null } }, set: (k, v) => { try { localStorage.setItem(k, v) } catch {} } }
+
+async function useDemo(i = 0) {
+  if (!isLocal()) return
+  let key = store.get('pave-demo-' + i)
+  if (!key) { key = generatePrivateKey(); store.set('pave-demo-' + i, key) }
+  const account = privateKeyToAccount(key)
+  S.demo = true
+  S.demoIndex = i
+  S.me = account.address
+  S.wallet = createWalletClient({ chain: S.chain, transport: http(S.dep.rpc), account })
+  if ((await S.pub.getBalance({ address: S.me })) < 10n ** 18n) await fundLocal(S.me)
+  store.set('pave-demo-on', String(i))
+  toast(`You are demo person ${DEMO[i]} (${short(S.me)}).`, 'ok')
+  await refresh()
+}
+
+/// Local chain only: give an address 100 test ETH for gas (a Hardhat node method).
+const fundLocal = (addr) => S.pub.request({ method: 'hardhat_setBalance', params: [addr, '0x56BC75E2D63100000'] })
+
 async function ensureChain() {
+  if (S.demo) return
   const eth = window.ethereum
   const id = await eth.request({ method: 'eth_chainId' })
   if (parseInt(id, 16) === S.dep.chainId) return
@@ -158,10 +188,15 @@ async function ensureChain() {
 
 async function connect() {
   const eth = window.ethereum
-  if (!eth) { toast('No wallet found. Install MetaMask or Rabby, then reload.', 'err'); return }
+  if (!eth) {
+    if (isLocal()) return useDemo(0)
+    toast('No wallet found. Install MetaMask or Rabby, then reload.', 'err')
+    return
+  }
   try {
     const [a] = await eth.request({ method: 'eth_requestAccounts' })
     S.me = getAddress(a)
+    S.demo = false
     S.wallet = createWalletClient({ chain: S.chain, transport: custom(eth), account: S.me })
     await ensureChain()
     eth.removeAllListeners?.('accountsChanged')
@@ -541,7 +576,9 @@ function testPanel() {
       <button class="btn btn--ghost btn--small" data-act="price-up">$WIF ×2</button>
       <button class="btn btn--ghost btn--small" data-act="price-down">$WIF ÷2</button>
       <button class="btn btn--ghost btn--small" data-act="poke">Record price</button>
+      ${isLocal() ? '<button class="btn btn--ghost btn--small" data-act="eth-local">Get 100 local ETH</button>' : ''}
     </div>
+    ${isLocal() ? `<p class="note">Demo people: you are ${S.demo ? `person <b>${DEMO[S.demoIndex]}</b>` : 'using your own wallet'}. Switch with the button at the top to play the borrower and the friends.</p>` : ''}
     <p class="note">${m ? `You hold ${wifFmt(m.wifBal)} test $WIF, ${usd(m.usdgBal)} test USDG and ${(Number(m.eth) / 1e18).toFixed(4)} testnet ETH for gas.` : 'Connect a wallet to use these.'} Price marks here last ${S.params.markPeriod ?? '?'}s, loans ${dur(BigInt(S.params.loanTerm ?? 0n)).replace('in ', '')}.</p></div>`
 }
 
@@ -554,7 +591,9 @@ function render() {
   k('vouched', wifFmt(m.vouched))
   k('burned', wifFmt(m.burned))
   k('price', S.prices ? usd(S.prices[3]) : 'paused')
-  $('[data-act="connect"]').textContent = S.me ? short(S.me) : 'Connect wallet'
+  $('[data-act="connect"]').textContent = S.me ? short(S.me) : isLocal() && !window.ethereum ? 'Use demo wallet' : 'Connect wallet'
+  const d = $('[data-act="demo-next"]')
+  if (d) { d.hidden = !isLocal(); d.textContent = S.demo ? `Person ${DEMO[S.demoIndex]} → ${DEMO[(S.demoIndex + 1) % 4]}` : 'Demo person A' }
   renderMap()
   // Keep what someone is typing when the panels refresh.
   const typed = Object.fromEntries($$('[data-in]').map((i) => [i.dataset.in, i.value]))
@@ -602,6 +641,8 @@ const val = (key) => $(`[data-in="${key}"]`)?.value
 
 const ACTIONS = {
   connect: () => (S.me ? null : connect()),
+  'demo-next': () => useDemo(S.demo ? (S.demoIndex + 1) % DEMO.length : 0),
+  'eth-local': () => act('Local ETH', () => fundLocal(S.me)),
   copy: (b) => { navigator.clipboard?.writeText(b.dataset.text); toast('Link copied.', 'ok') },
   'borrow-max': () => { const i = $('[data-in="borrow"]'); if (i && S.mine?.credit) i.value = (Number(S.mine.credit.available) / 1e6).toFixed(2) },
   borrow: () => act('Borrow', async () => {
@@ -702,8 +743,10 @@ async function boot() {
   const forAddr = new URLSearchParams(location.search).get('for')
   if (forAddr && isAddress(forAddr)) { S.vouchFor = getAddress(forAddr); showTab('vouch') }
 
-  // Reconnect silently if the wallet already trusts this site.
-  try {
+  // Reconnect silently: the demo person from last time (local chain), or a wallet that already trusts this site.
+  const lastDemo = store.get('pave-demo-on')
+  if (isLocal() && lastDemo != null && !window.ethereum) await useDemo(Number(lastDemo)).catch(() => {})
+  else try {
     const accts = await window.ethereum?.request({ method: 'eth_accounts' })
     if (accts?.length) await connect()
   } catch { /* no wallet */ }

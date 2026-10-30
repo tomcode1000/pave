@@ -7,7 +7,8 @@
   "scripts": {
     "build": "hardhat compile",
     "test": "hardhat test test/Pave.test.ts",
-    "test:fork": "cross-env FORK=1 hardhat test test/Pave.fork.test.ts"
+    "test:fork": "cross-env FORK=1 hardhat test test/Pave.fork.test.ts",
+    "local": "node scripts/local.mjs"
   },
   "devDependencies": {
     "@nomicfoundation/hardhat-network-helpers": "1.1.2",
