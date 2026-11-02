@@ -36,28 +36,29 @@ async function click(act) {
 }
 
 try {
-  await send('Page.enable'); await send('Runtime.enable')
+  await send('Page.enable')
+  // Motion off: numbers land at once, and every section shows as designed without scrolling.
+  await send('Emulation.setEmulatedMedia', { features: [{ name: 'prefers-reduced-motion', value: 'reduce' }] }); await send('Runtime.enable')
   await send('Emulation.setDeviceMetricsOverride', { width: 1440, height: 1200, deviceScaleFactor: 1, mobile: false })
   await send('Page.navigate', { url: APP })
   for (let i = 0; i < 60 && (await evaluate(`document.querySelector('[data-k="pool"]').textContent`)) === '—'; i++) await sleep(250)
-  check((await evaluate(`document.querySelector('[data-act="connect"]').textContent`)) === 'Use demo wallet', 'with no wallet app, the button offers a demo wallet')
+  check((await evaluate(`document.querySelector('[data-connect]').textContent`)) === 'Use demo wallet', 'with no wallet app, the button offers a demo wallet')
   await click('connect')
-  const a = await evaluate(`document.querySelector('[data-act="connect"]').textContent`)
+  const a = await evaluate(`document.querySelector('[data-connect]').textContent`)
   check(a.startsWith('0x'), `person A is connected (${a})`)
   await click('mint-wif')
   await click('demo-next')
-  const b = await evaluate(`document.querySelector('[data-act="connect"]').textContent`)
+  const b = await evaluate(`document.querySelector('[data-connect]').textContent`)
   check(b.startsWith('0x') && b !== a, `switched to person B (${b})`)
   const bFull = await evaluate(`(() => { const t = document.querySelector('[data-act="demo-next"]').textContent; return t })()`)
   check(bFull.startsWith('Person B'), `the switcher says ${bFull}`)
   // A vouches for B
   const bAddr = await evaluate(`new URL(document.querySelector('.share code').textContent).searchParams.get('for')`)
   for (let i = 0; i < 3; i++) await click('demo-next') // back round to A
-  await evaluate(`document.querySelector('[data-tab="vouch"]').click()`)
   await evaluate(`(() => { const s = (k, v) => { const i = document.querySelector('[data-in="' + k + '"]'); i.value = v; i.dispatchEvent(new Event('input', { bubbles: true })) }; s('vouch-for', '${bAddr}'); s('vouch-amt', '50000') })()`)
   await sleep(300)
   await click('vouch')
-  check((await evaluate(`document.querySelectorAll('.map .road').length`)) >= 1, "B's road is on the map")
+  check((await evaluate(`document.querySelector('[data-r="count"]').textContent`)) === '1', 'the rewards card counts one active vouch')
   const shot = await send('Page.captureScreenshot', { format: 'png', captureBeyondViewport: true })
   const file = join(tmpdir(), 'pave-demo.png')
   writeFileSync(file, Buffer.from(shot.result.data, 'base64'))

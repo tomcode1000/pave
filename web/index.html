@@ -6,26 +6,235 @@
   <title>Pave: credit from people who believe in you</title>
   <meta name="description" content="Friends lock $WIF behind your wallet. You borrow, repay, and pave your own road. On Robinhood Chain.">
   <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="preload" href="fonts/PlusJakartaSans.ttf" as="font" type="font/ttf" crossorigin>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <header class="bar">
-    <a class="mark" href="./" aria-label="Pave home">
-      <svg viewBox="0 0 32 32" class="mark__icon" aria-hidden="true"><path d="M4 22 L28 22" stroke="currentColor" stroke-opacity=".25" stroke-width="5" stroke-linecap="round"/><path d="M4 22 L18 22" stroke="var(--lime)" stroke-width="5" stroke-linecap="round"/><circle cx="8" cy="11" r="3" fill="var(--lime)"/><circle cx="15" cy="8" r="3.5" fill="currentColor"/><circle cx="22" cy="12" r="2.5" fill="currentColor" fill-opacity=".5"/></svg>
-      <span>Pave</span>
-    </a>
-    <span class="net" data-net>—</span>
-    <button class="btn btn--ghost btn--small" data-act="demo-next" hidden>Demo person A</button>
-    <button class="btn btn--ghost" data-act="connect">Connect wallet</button>
+  <!--
+    Each section is one Figma frame (1280 wide). On wide screens the frame's picture is the
+    backdrop and every text, button and number sits on its design spot: --x, --y, --w, --h are
+    design pixels, --t is the top of a line's letters, --f its size. On phones the same pieces stack.
+  -->
+  <svg width="0" height="0" style="position: absolute" aria-hidden="true">
+    <symbol id="i-chev" viewBox="0 0 16 16"><path d="M6 3.5 10.5 8 6 12.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-spark" viewBox="0 0 20 20"><path d="M10 0c.7 5.3 4.7 9.3 10 10-5.3.7-9.3 4.7-10 10-.7-5.3-4.7-9.3-10-10C5.3 9.3 9.3 5.3 10 0z" fill="#ffe3a3"/></symbol>
+    <filter id="f-glow" x="-200%" y="-200%" width="500%" height="500%"><feGaussianBlur stdDeviation="2.4" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+    <radialGradient id="g-glow"><stop offset="0" stop-color="#ffc85a" stop-opacity=".55"/><stop offset=".45" stop-color="#f6b63a" stop-opacity=".18"/><stop offset="1" stop-color="#f6b63a" stop-opacity="0"/></radialGradient>
+    <linearGradient id="g-sweep" x1="0" x2="1"><stop offset="0" stop-color="#ffd36b" stop-opacity="0"/><stop offset=".5" stop-color="#fff1c4"/><stop offset="1" stop-color="#ffd36b" stop-opacity="0"/></linearGradient>
+    <symbol id="i-warn" viewBox="0 0 24 24"><path d="M10.3 3.4a2 2 0 0 1 3.4 0l8.6 15A2 2 0 0 1 20.6 21H3.4a2 2 0 0 1-1.7-2.6z" fill="currentColor"/><path d="M12 9v5" stroke="#111" stroke-width="2.2" stroke-linecap="round"/><circle cx="12" cy="17.4" r="1.3" fill="#111"/></symbol>
+  </svg>
+
+  <header class="top">
+    <nav class="stage nav" aria-label="Pave">
+      <a class="a mark" href="#top" style="--x: 50; --y: 30; --w: 67; --h: 34" aria-label="Pave home">
+        <svg viewBox="0 0 68 36" aria-hidden="true">
+          <path d="M1 35C5 19 19 6 44 1.5l2.2 4.6C26 10.5 14.6 21 11 35z" fill="#f4f4f5"/>
+          <path d="M17 35c3.4-10.4 11.2-19 23.6-23.6l-.6 5.6C32.7 20.5 28.6 27 27.4 35z" fill="#f4f4f5"/>
+          <ellipse cx="44.5" cy="18" rx="5.8" ry="4.3" fill="#f6b63a"/>
+          <ellipse cx="40" cy="28.5" rx="6.6" ry="4.8" fill="#9a9aa1"/>
+          <ellipse cx="53.4" cy="28.3" rx="6.2" ry="4.6" fill="#9a9aa1"/>
+        </svg>
+      </a>
+      <a class="tx word" href="#top" style="--x: 133; --t: 38; --f: 26">PAVE</a>
+      <i class="a rule" style="--x: 255; --y: 28; --w: 1; --h: 36"></i>
+      <span class="a net" style="--x: 276; --y: 27; --w: 148; --h: 38"><i class="net__dot"></i><span data-net>Robinhood Chain</span><svg class="net__chev" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 6l4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+      <a class="tx link" href="#map" data-nav="map" style="--x: 509; --t: 40; --f: 12.5">Map</a>
+      <a class="tx link" href="#road" data-nav="road" style="--x: 592; --t: 40; --f: 12.5">Your Road</a>
+      <a class="tx link" href="#vouch" data-nav="vouch" style="--x: 705; --t: 40; --f: 12.5">Vouch</a>
+      <a class="tx link" href="#lend" data-nav="lend" style="--x: 797; --t: 40; --f: 12.5">Lend</a>
+      <a class="tx link" href="#believers" data-nav="believers" style="--x: 882; --t: 40; --f: 12.5">Believers</a>
+      <i class="a rule" style="--x: 1038; --y: 28; --w: 1; --h: 36"></i>
+      <button class="a btn-gold connect" data-act="connect" style="--x: 1081; --y: 26; --w: 146; --h: 40">
+        <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3 6.5A2.5 2.5 0 0 1 5.5 4H14v2.2H5.6a.6.6 0 0 0 0 1.2H16a1 1 0 0 1 1 1V15a1 1 0 0 1-1 1H5.5A2.5 2.5 0 0 1 3 13.5z" fill="currentColor"/><circle cx="13.6" cy="11.7" r="1.2" fill="#f6b63a"/></svg>
+        <span data-connect>Connect Wallet</span>
+      </button>
+    </nav>
   </header>
 
   <main>
-    <section class="hero">
-      <div class="hero__copy">
-        <p class="eyebrow">Credit is the last unflat thing</p>
-        <h1>Borrow because people<br>believe in you.</h1>
-        <p class="lede">Friends lock $WIF behind your wallet. You borrow a little USDG, repay, and your road grows from dirt to highway. Not where you were born. Who backs you.</p>
+    <!-- Frame 4: hero -->
+    <section class="stage frame" id="top" style="--bg: url(assets/hero.jpg)">
+      <span class="a eyebrow" style="--x: 60; --y: 88; --w: 272; --h: 44"><i class="a bar" style="--x: 7; --y: 6; --w: 6; --h: 31"></i></span>
+      <p class="tx soft" style="--x: 90; --t: 102; --f: 16">Credit is the last unflat thing.</p>
+      <h1 class="lines"><span class="tx hd tight" style="--x: 63; --t: 158; --f: 76">Borrow because</span>
+        <span class="tx hd tight" style="--x: 63; --t: 228; --f: 76"><b class="gold">people believe</b> in you.</span></h1>
+      <p class="tx lede" style="--x: 64; --t: 325; --f: 20; --lh: 26">Pave lets you borrow small amounts of money <br>backed by your friends, on the Robinhood Chain.</p>
+      <a class="a btn-gold cta" href="#map" data-act="tour" style="--x: 63; --y: 409; --w: 221; --h: 55">
+        <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 1.8a6.2 6.2 0 0 0-6.2 6.2c0 4.6 6.2 10.2 6.2 10.2s6.2-5.6 6.2-10.2A6.2 6.2 0 0 0 10 1.8z" fill="currentColor"/><circle cx="10" cy="8" r="2.3" fill="#f6b63a"/></svg>
+        Explore the Map<svg class="chev" aria-hidden="true"><use href="#i-chev"/></svg></a>
+      <a class="a btn-line cta" href="#road" style="--x: 301; --y: 410; --w: 199; --h: 53">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M10 8.3v7.4l6-3.7z" fill="currentColor"/></svg>
+        Start Your Road</a>
+      <svg class="a fx fx-stage" style="--x: 0; --y: 0; --w: 1280; --h: 634" viewBox="0 86 1280 634" aria-hidden="true">
+        <circle class="fx-breathe" cx="1032" cy="330" r="190" fill="url(#g-glow)"/><path id="p-hero" d="M1040 385 C1034 387 1019 392 1005 395 C991 398 972 400 955 402 C938 404 919 408 905 410 C891 412 880 414 870 417 C860 420 852 422 847 425 C842 428 838 430 837 432 C836 434 837 438 840 440 C843 442 848 444 855 447 C862 450 872 454 880 457 C888 460 898 463 905 467 C912 471 920 476 925 480 C930 484 932 487 932 491 C932 495 928 500 922 504 C916 508 907 512 896 517 C885 522 873 527 858 533 C843 539 824 545 805 551 C786 557 764 564 742 571 C720 578 698 586 670 594 C642 602 600 614 575 622 C550 630 538 634 520 640 C502 646 478 653 470 656" fill="none"/><circle r="1" fill="#ffe7b0" filter="url(#f-glow)"><animateMotion dur="7s" begin="0s" repeatCount="indefinite" calcMode="spline" keyPoints="0;1" keyTimes="0;1" keySplines=".5 0 .8 1"><mpath href="#p-hero"/></animateMotion><animate attributeName="r" values="1.4;2.4;7" keyTimes="0;.5;1" dur="7s" begin="0s" repeatCount="indefinite"/><animate attributeName="opacity" values="0;.9;.9;0" keyTimes="0;.12;.88;1" dur="7s" begin="0s" repeatCount="indefinite"/></circle><circle r="1" fill="#ffe7b0" filter="url(#f-glow)"><animateMotion dur="7s" begin="-3.5s" repeatCount="indefinite" calcMode="spline" keyPoints="0;1" keyTimes="0;1" keySplines=".5 0 .8 1"><mpath href="#p-hero"/></animateMotion><animate attributeName="r" values="1.4;2.4;7" keyTimes="0;.5;1" dur="7s" begin="-3.5s" repeatCount="indefinite"/><animate attributeName="opacity" values="0;.9;.9;0" keyTimes="0;.12;.88;1" dur="7s" begin="-3.5s" repeatCount="indefinite"/></circle><use class="spark" href="#i-spark" x="664" y="483" width="11" height="11" style="--d: 0.4s"/><use class="spark" href="#i-spark" x="1150" y="508" width="14" height="14" style="--d: 2.1s"/>
+      </svg>
+      <img class="mob" src="assets/hero.jpg" alt="" aria-hidden="true">
+    </section>
+
+    <!-- Frame 1: how Pave works -->
+    <section class="stage frame" id="how" style="--bg: url(assets/how.jpg)">
+      <span class="a pill" style="--x: 546; --y: 22; --w: 189; --h: 40"><i class="pill__dot"></i><span>How Pave works</span></span>
+      <h2 class="lines"><span class="tx hd c" style="--cx: 642; --t: 71; --f: 54">A simpler way</span>
+        <span class="tx hd c" style="--cx: 643; --t: 121; --f: 54">to <b class="gold">borrow, together.</b></span></h2>
+      <p class="tx lede c" style="--cx: 640; --t: 179; --f: 17.5; --lh: 23">Get backed by your community, borrow with confidence, <br>and grow your credit on the Flat Map.</p>
+
+      <div class="a pic" style="--x: 50; --y: 232; --w: 365; --h: 282"><img src="assets/step-1.jpg" alt="Friends around your wallet">
+        <div class="k" style="--W: 365">
+          <span class="a no" style="--x: 48; --y: 17; --w: 44; --h: 44">01</span>
+          <h3 class="tx title" style="--x: 110; --t: 30; --f: 20">Get Backed</h3>
+          <p class="tx desc" style="--x: 110; --t: 59; --f: 13; --lh: 18">Friends lock $WIF behind <br>your wallet.</p>
+        </div></div>
+      <div class="a pic" style="--x: 470; --y: 232; --w: 340; --h: 282"><img src="assets/step-2.jpg" alt="USDG paid out">
+        <div class="k" style="--W: 340">
+          <span class="a no" style="--x: 47; --y: 17; --w: 44; --h: 44">02</span>
+          <h3 class="tx title" style="--x: 107; --t: 30; --f: 20">Borrow</h3>
+          <p class="tx desc" style="--x: 107; --t: 59; --f: 13; --lh: 17">Enough support allows <br>you to borrow USDG.</p>
+        </div></div>
+      <div class="a pic" style="--x: 868; --y: 232; --w: 372; --h: 282"><img src="assets/step-3.jpg" alt="Your road growing">
+        <div class="k" style="--W: 372">
+          <span class="a no" style="--x: 48; --y: 17; --w: 44; --h: 44">03</span>
+          <h3 class="tx title" style="--x: 109; --t: 30; --f: 20">Repay &amp; Grow</h3>
+          <p class="tx desc" style="--x: 109; --t: 60; --f: 13; --lh: 17">Repay on time, reward <br>your supporters and unlock <br>higher limits.</p>
+        </div></div>
+
+      <svg class="a fx fx-stage" style="--x: 0; --y: 0; --w: 1280; --h: 634" viewBox="0 86 1280 634" aria-hidden="true">
+        <circle class="fx-breathe" cx="240" cy="472" r="95" fill="url(#g-glow)" style="--d: 0s"/><circle class="fx-breathe" cx="642" cy="470" r="90" fill="url(#g-glow)" style="--d: 1.2s"/><circle class="fx-breathe" cx="1130" cy="470" r="90" fill="url(#g-glow)" style="--d: 2.4s"/><use class="spark" href="#i-spark" x="652" y="412" width="13" height="13" style="--d: 0.2s"/><use class="spark" href="#i-spark" x="1148" y="424" width="13" height="13" style="--d: 1.6s"/><use class="spark" href="#i-spark" x="282" y="428" width="10" height="10" style="--d: 2.8s"/>
+      </svg>
+      <ul class="a strip" style="--x: 46; --y: 524; --w: 1188; --h: 76">
+        <li class="a feat" style="--x: 44; --y: 20"><svg viewBox="0 0 32 32" aria-hidden="true"><path d="M16 3 5 7v8c0 7 4.7 12 11 14 6.3-2 11-7 11-14V7z" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/><path d="m11 16 3.6 3.6L21.5 12" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <span><b>Community Backed</b><small>Credit together.</small></span></li>
+        <li class="a feat" style="--x: 349; --y: 20"><svg viewBox="0 0 32 32" aria-hidden="true"><path d="M18.5 2 6 18h9l-2 12L26 13h-9z" fill="currentColor"/></svg>
+          <span><b>Flexible Borrowing</b><small>When you need it.</small></span></li>
+        <li class="a feat" style="--x: 621; --y: 20"><svg viewBox="0 0 32 32" aria-hidden="true"><rect x="4" y="18" width="6" height="11" rx="1.2" fill="none" stroke="currentColor" stroke-width="2"/><rect x="13" y="12" width="6" height="17" rx="1.2" fill="none" stroke="currentColor" stroke-width="2"/><rect x="22" y="4" width="6" height="25" rx="1.2" fill="none" stroke="currentColor" stroke-width="2"/></svg>
+          <span><b>Grow Your Road</b><small>Build higher limits.</small></span></li>
+        <li class="a feat" style="--x: 907; --y: 20"><svg viewBox="0 0 40 32" aria-hidden="true"><circle cx="20" cy="9" r="5.5" fill="currentColor"/><circle cx="8.5" cy="11.5" r="4.3" fill="currentColor"/><circle cx="31.5" cy="11.5" r="4.3" fill="currentColor"/><path d="M10 28c0-6 4.5-10 10-10s10 4 10 10z" fill="currentColor"/><path d="M1 27c0-4.8 3.2-8 7.5-8 1.5 0 2.9.4 4 1.1A12 12 0 0 0 8.4 27z" fill="currentColor"/><path d="M39 27c0-4.8-3.2-8-7.5-8-1.5 0-2.9.4-4 1.1A12 12 0 0 1 31.6 27z" fill="currentColor"/></svg>
+          <span><b>Earn by Believing</b><small>Support others. Earn rewards.</small></span></li>
+        <li class="a sep" style="--x: 296; --y: 20; --h: 38"></li>
+        <li class="a sep" style="--x: 576; --y: 20; --h: 38"></li>
+        <li class="a sep" style="--x: 860; --y: 20; --h: 38"></li>
+      </ul>
+    </section>
+
+    <!-- Frame 2: the flat map -->
+    <section class="stage frame" id="map" style="--bg: url(assets/map.jpg)">
+      <span class="a pill" style="--x: 549; --y: 19; --w: 182; --h: 42"><i class="pill__dot"></i><span>The Flat Map</span></span>
+      <h2 class="tx hd c" style="--cx: 652; --t: 67; --f: 43">Your people. Your road. <b class="gold">Your credit.</b></h2>
+      <p class="tx lede c" style="--cx: 639; --t: 121; --f: 17.3; --lh: 24">A community-backed credit map where every loan, vouch and repayment <br>helps build a stronger road for everyone.</p>
+      <div class="a pic map-art" data-map style="--x: 0; --y: 160; --w: 905; --h: 334"><img src="assets/map-art.jpg" alt="The flat map: roads joining people to Pave">
+        <svg class="fx fx-pic" viewBox="0 246 905 334" aria-hidden="true"><path id="p-dirt" d="M165 484 C170 482 183 479 195 475 C207 471 221 466 235 460 C249 454 266 447 280 442 C294 437 308 432 320 429 C332 426 347 424 352 423" fill="none"/><path id="p-orange" d="M232 302 C237 303 252 305 262 308 C272 311 281 314 290 318 C299 322 309 329 318 333 C327 337 336 339 345 340 C354 341 366 338 375 337 C384 336 396 336 400 336" fill="none"/><path id="p-cobble" d="M140 372 C145 372 158 372 170 370 C182 368 197 364 210 362 C223 360 238 360 250 360 C262 360 270 361 280 365 C290 369 300 379 310 385 C320 391 331 397 340 402 C349 407 358 412 362 414" fill="none"/><path id="p-asphalt" d="M655 476 C650 473 638 468 625 460 C612 452 591 440 575 430 C559 420 543 409 530 402 C517 395 504 391 495 388 C486 385 481 385 478 384" fill="none"/><path id="p-gray" d="M612 336 C606 335 590 331 578 330 C566 329 551 328 540 328 C529 328 517 330 512 330" fill="none"/><ellipse class="ring" cx="220" cy="296" rx="33" ry="7" style="--d: 0s"/><ellipse class="ring" cx="114" cy="372" rx="26" ry="7" style="--d: 0.5s"/><ellipse class="ring" cx="160" cy="490" rx="34" ry="9" style="--d: 1.0s"/><ellipse class="ring" cx="375" cy="422" rx="28" ry="8" style="--d: 1.5s"/><ellipse class="ring" cx="630" cy="335" rx="24" ry="6" style="--d: 0.25s"/><ellipse class="ring" cx="822" cy="374" rx="28" ry="7" style="--d: 0.75s"/><ellipse class="ring" cx="670" cy="481" rx="32" ry="9" style="--d: 1.25s"/><ellipse class="ring ring--hub" cx="452" cy="338" rx="68" ry="16" style="--d: 0s"/><circle r="3.2" fill="#ffe7b0" filter="url(#f-glow)"><animateMotion dur="3.6s" begin="0s" repeatCount="indefinite" calcMode="spline" keyPoints="0;1" keyTimes="0;1" keySplines=".45 0 .55 1"><mpath href="#p-dirt"/></animateMotion><animate attributeName="opacity" values="0;1;1;0" keyTimes="0;.15;.8;1" dur="3.6s" begin="0s" repeatCount="indefinite"/></circle><circle r="3.2" fill="#ffe7b0" filter="url(#f-glow)"><animateMotion dur="3.4s" begin="-1.2s" repeatCount="indefinite" calcMode="spline" keyPoints="0;1" keyTimes="0;1" keySplines=".45 0 .55 1"><mpath href="#p-orange"/></animateMotion><animate attributeName="opacity" values="0;1;1;0" keyTimes="0;.15;.8;1" dur="3.4s" begin="-1.2s" repeatCount="indefinite"/></circle><circle r="3.2" fill="#ffe7b0" filter="url(#f-glow)"><animateMotion dur="4.2s" begin="-2.4s" repeatCount="indefinite" calcMode="spline" keyPoints="0;1" keyTimes="0;1" keySplines=".45 0 .55 1"><mpath href="#p-cobble"/></animateMotion><animate attributeName="opacity" values="0;1;1;0" keyTimes="0;.15;.8;1" dur="4.2s" begin="-2.4s" repeatCount="indefinite"/></circle><circle r="3.2" fill="#ffe7b0" filter="url(#f-glow)"><animateMotion dur="3.8s" begin="-0.6s" repeatCount="indefinite" calcMode="spline" keyPoints="0;1" keyTimes="0;1" keySplines=".45 0 .55 1"><mpath href="#p-asphalt"/></animateMotion><animate attributeName="opacity" values="0;1;1;0" keyTimes="0;.15;.8;1" dur="3.8s" begin="-0.6s" repeatCount="indefinite"/></circle><circle r="3.2" fill="#ffe7b0" filter="url(#f-glow)"><animateMotion dur="2.8s" begin="-1.8s" repeatCount="indefinite" calcMode="spline" keyPoints="0;1" keyTimes="0;1" keySplines=".45 0 .55 1"><mpath href="#p-gray"/></animateMotion><animate attributeName="opacity" values="0;1;1;0" keyTimes="0;.15;.8;1" dur="2.8s" begin="-1.8s" repeatCount="indefinite"/></circle><use class="spark" href="#i-spark" x="16" y="405" width="11" height="11" style="--d: 0s"/><use class="spark" href="#i-spark" x="542" y="369" width="11" height="11" style="--d: 0.9s"/><use class="spark" href="#i-spark" x="619" y="395" width="11" height="11" style="--d: 1.8s"/><use class="spark" href="#i-spark" x="479" y="485" width="11" height="11" style="--d: 2.7s"/><use class="spark" href="#i-spark" x="239" y="503" width="11" height="11" style="--d: 0.45s"/><use class="spark" href="#i-spark" x="799" y="445" width="11" height="11" style="--d: 1.35s"/></svg></div>
+
+      <div class="a pic" style="--x: 905; --y: 172; --w: 345; --h: 300"><img src="assets/profile.jpg" alt="">
+        <div class="k" style="--W: 345" data-profile>
+          <p class="tx who" style="--x: 116; --t: 40; --f: 17" data-p="addr">Not connected</p>
+          <a class="a ext" style="--x: 221; --y: 40; --w: 14; --h: 14" target="_blank" rel="noopener" data-p="ext" hidden aria-label="Open in the explorer"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M9 2.5h4.5V7M13.5 2.5 7.5 8.5M12 9.5v3.2a.8.8 0 0 1-.8.8H3.3a.8.8 0 0 1-.8-.8V4.8a.8.8 0 0 1 .8-.8h3.2" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+          <span class="a lvl" style="--x: 115; --y: 63; --w: 85; --h: 28" data-p="level">Level 0</span>
+          <p class="tx label" style="--x: 71; --t: 132; --f: 14">$WIF Backing</p>
+          <p class="tx big r" style="--rx: 317; --t: 131; --f: 20" data-p="backing">—</p>
+          <p class="tx label" style="--x: 72; --t: 184; --f: 14">Loan Status</p>
+          <span class="a status" style="--x: 236; --y: 178; --w: 81; --h: 27" data-p="status"><i></i><span>None</span></span>
+          <p class="tx label strong" style="--x: 29; --t: 236; --f: 14">Road Progress</p>
+          <span class="a bar-track" style="--x: 28; --y: 261; --w: 239; --h: 8"><i data-p="bar" style="width: 0%"></i></span>
+          <p class="tx big r" style="--rx: 317; --t: 259; --f: 15" data-p="pct">0%</p>
+        </div></div>
+
+      <div class="hscroll"><div class="a pic wide" style="--x: 38; --y: 492; --w: 1207; --h: 110"><img src="assets/legend.jpg" alt="">
+        <div class="k" style="--W: 1207">
+          <p class="tx title" style="--x: 145; --t: 34; --f: 14">Level 0</p><p class="tx desc" style="--x: 146; --t: 57; --f: 12">Dirt Path</p>
+          <p class="tx title" style="--x: 385; --t: 34; --f: 14">Level 1</p><p class="tx desc" style="--x: 385; --t: 57; --f: 12">Gravel</p>
+          <p class="tx title" style="--x: 629; --t: 34; --f: 14">Level 2</p><p class="tx desc" style="--x: 629; --t: 57; --f: 12">Cobblestone</p>
+          <p class="tx title" style="--x: 880; --t: 34; --f: 14">Level 3</p><p class="tx desc" style="--x: 880; --t: 57; --f: 12">Highway</p>
+          <p class="tx title" style="--x: 1100; --t: 34; --f: 14">Defaulted</p><p class="tx desc" style="--x: 1100; --t: 57; --f: 12">Cracked Road</p>
+        </div></div></div>
+    </section>
+
+    <!-- Frame 3: your credit journey -->
+    <section class="stage frame" id="road" style="--bg: url(assets/road.jpg)">
+      <span class="a pill" style="--x: 531; --y: 12; --w: 217; --h: 40"><i class="pill__dot"></i><span>Your Credit Journey</span></span>
+      <h2 class="lines"><span class="tx hd c" style="--cx: 641; --t: 63; --f: 58">Every repayment</span>
+        <span class="tx hd c gold" style="--cx: 640; --t: 114; --f: 58">takes you further.</span></h2>
+      <p class="tx lede c" style="--cx: 640; --t: 175; --f: 19">Repay on time to unlock higher borrowing limits and build a stronger road.</p>
+
+      <div class="hscroll"><div class="a pic wide" style="--x: 0; --y: 206; --w: 1280; --h: 248"><img src="assets/road-levels.jpg" alt="Dirt path, gravel, cobblestone and highway">
+        <svg class="fx fx-pic" viewBox="0 292 1280 248" aria-hidden="true"><line class="sweep" x1="120" y1="519" x2="1060" y2="519" stroke="url(#g-sweep)" stroke-width="3" stroke-linecap="round" pathLength="1000"/><circle class="ring ring--dot" cx="181" cy="519" r="7" style="--d: 0s"/><circle class="ring ring--dot" cx="431" cy="519" r="7" style="--d: 0.6s"/><circle class="ring ring--dot" cx="703" cy="519" r="7" style="--d: 1.2s"/><circle class="ring ring--dot" cx="1004" cy="519" r="7" style="--d: 1.8s"/></svg>
+        <div class="k" style="--W: 1280">
+          <p class="tx title mid c" style="--cx: 196; --t: 22; --f: 15">Level 0</p><p class="tx sub c" style="--cx: 196; --t: 46; --f: 13.5">Dirt Path</p>
+          <span class="a cap" style="--x: 165; --y: 67; --w: 60; --h: 26">$<span data-cap="0">10</span></span>
+          <p class="tx title mid c" style="--cx: 447; --t: 22; --f: 15">Level 1</p><p class="tx sub c" style="--cx: 447; --t: 46; --f: 13.5">Gravel</p>
+          <span class="a cap" style="--x: 417; --y: 67; --w: 59; --h: 26">$<span data-cap="1">25</span></span>
+          <p class="tx title mid c" style="--cx: 707; --t: 22; --f: 15">Level 2</p><p class="tx sub c" style="--cx: 707; --t: 46; --f: 13.5">Cobblestone</p>
+          <span class="a cap" style="--x: 677; --y: 67; --w: 59; --h: 26">$<span data-cap="2">50</span></span>
+          <p class="tx title mid c" style="--cx: 1028; --t: 21; --f: 15">Level 3</p><p class="tx sub c" style="--cx: 1028; --t: 44; --f: 13.5">Highway</p>
+          <span class="a cap" style="--x: 996; --y: 65; --w: 66; --h: 29">$<span data-cap="3">100</span></span>
+        </div></div></div>
+
+      <div class="hscroll"><div class="a pic wide" style="--x: 48; --y: 462; --w: 1184; --h: 132"><img src="assets/defaulted.jpg" alt="A cracked road">
+        <div class="k" style="--W: 1184">
+          <h3 class="tx title" style="--x: 292; --t: 37; --f: 25">Defaulted</h3>
+          <p class="tx sub" style="--x: 292; --t: 75; --f: 16">Cracked Road</p>
+          <span class="a badge-red" style="--x: 445; --y: 69; --w: 125; --h: 28"><svg aria-hidden="true"><use href="#i-warn"/></svg>Limited Access</span>
+          <p class="tx desc" style="--x: 629; --t: 48; --f: 14; --lh: 21">Missed repayments can set your road back. <br>Keep up with your loans to stay on track.</p>
+          <a class="a btn-line gold-line" href="#your-road" style="--x: 988; --y: 43; --w: 166; --h: 45">Stay on Track<svg class="chev" aria-hidden="true"><use href="#i-chev"/></svg></a>
+        </div></div></div>
+    </section>
+
+    <section class="wrap" id="your-road" aria-label="Your road"><div class="panel" data-panel="road"></div></section>
+
+    <!-- Frame 5: vouch -->
+    <section class="stage frame" id="vouch" style="--bg: url(assets/vouch.jpg)">
+      <span class="a pill" style="--x: 59; --y: 32; --w: 202; --h: 38"><i class="pill__dot"></i><span>Back Your People</span></span>
+      <h2 class="lines"><span class="tx hd" style="--x: 63; --t: 82; --f: 59">Believe in someone.</span>
+        <span class="tx hd gold" style="--x: 63; --t: 137; --f: 59">Earn when they succeed.</span></h2>
+      <p class="tx lede" style="--x: 61; --t: 203; --f: 18.6; --lh: 25">Support your friends by locking $WIF behind their wallet and earn <br>rewards when they repay.</p>
+      <div class="a pic hands" style="--x: 760; --y: 0; --w: 520; --h: 266"><img class="shake" src="assets/hands.jpg" alt="A handshake over a $WIF coin"><img class="coin" src="assets/coin.png" alt=""></div>
+
+      <div class="a pic" style="--x: 55; --y: 269; --w: 261; --h: 235"><img src="assets/vstep-1.jpg" alt="">
+        <div class="k" style="--W: 261">
+          <span class="a no" style="--x: 24; --y: 102; --w: 38; --h: 38">01</span>
+          <h3 class="tx title" style="--x: 80; --t: 112; --f: 16">Choose Someone</h3>
+          <p class="tx desc" style="--x: 81; --t: 141; --f: 12.3; --lh: 16">Find a friend and enter <br>their wallet address.</p>
+          <label class="a pick" style="--x: 25; --y: 182; --w: 211; --h: 33">
+            <svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="6.5" r="3.6" fill="currentColor"/><path d="M3 17.5c0-3.9 3.1-6.3 7-6.3s7 2.4 7 6.3z" fill="currentColor"/></svg>
+            <input data-in="pick-for" placeholder="0x…" aria-label="Your friend's wallet address" spellcheck="false" autocomplete="off">
+          </label>
+        </div></div>
+      <div class="a pic" style="--x: 368; --y: 269; --w: 238; --h: 235"><img src="assets/vstep-2.jpg" alt="">
+        <div class="k" style="--W: 238">
+          <span class="a no" style="--x: 21; --y: 102; --w: 38; --h: 38">02</span>
+          <h3 class="tx title" style="--x: 78; --t: 112; --f: 16">Back Their Road</h3>
+          <p class="tx desc" style="--x: 79; --t: 140; --f: 12.3; --lh: 18">Lock $WIF behind <br>their wallet.</p>
+        </div></div>
+      <div class="a pic" style="--x: 656; --y: 269; --w: 237; --h: 235"><img src="assets/vstep-3.jpg" alt="">
+        <div class="k" style="--W: 237">
+          <span class="a no" style="--x: 22; --y: 102; --w: 38; --h: 38">03</span>
+          <h3 class="tx title" style="--x: 77; --t: 112; --f: 16">Earn Rewards</h3>
+          <p class="tx desc" style="--x: 76; --t: 141; --f: 12.3; --lh: 17">When they repay, earn <br>a share of the interest.</p>
+        </div></div>
+      <div class="a pic" style="--x: 927; --y: 265; --w: 306; --h: 239"><img src="assets/rewards.jpg" alt="">
+        <div class="k" style="--W: 306" data-rewards>
+          <p class="tx title caps" style="--x: 59; --t: 21; --f: 12.5">Rewards Preview</p>
+          <p class="tx big c" style="--cx: 78; --t: 97; --f: 16" data-r="vouched">—</p><p class="tx tiny c" style="--cx: 78; --t: 119; --f: 10.5">Amount Vouched</p>
+          <p class="tx big c" style="--cx: 227; --t: 97; --f: 16" data-r="potential">—</p><p class="tx tiny c" style="--cx: 227; --t: 119; --f: 10.5">Potential Rewards</p>
+          <p class="tx big c" style="--cx: 78; --t: 187; --f: 16" data-r="count">—</p><p class="tx tiny c" style="--cx: 78; --t: 210; --f: 10.5">Active Vouches</p>
+          <p class="tx big c" style="--cx: 227; --t: 187; --f: 16" data-r="claim">—</p><p class="tx tiny c" style="--cx: 227; --t: 210; --f: 10.5">Claimable Earnings</p>
+        </div></div>
+
+      <svg class="a fx fx-stage" style="--x: 0; --y: 0; --w: 1280; --h: 634" viewBox="0 86 1280 634" aria-hidden="true">
+        <circle class="fx-breathe" cx="1022" cy="140" r="120" fill="url(#g-glow)"/><circle class="fx-breathe" cx="496" cy="395" r="60" fill="url(#g-glow)" style="--d: 1.5s"/><use class="spark" href="#i-spark" x="806" y="258" width="12" height="12" style="--d: 0.3s"/><use class="spark" href="#i-spark" x="1222" y="258" width="12" height="12" style="--d: 1.4s"/><use class="spark" href="#i-spark" x="1050" y="96" width="14" height="14" style="--d: 2.2s"/><use class="spark" href="#i-spark" x="842" y="364" width="10" height="10" style="--d: 2.9s"/><use class="spark" href="#i-spark" x="520" y="372" width="10" height="10" style="--d: 0.9s"/>
+      </svg>
+      <div class="a important" style="--x: 54; --y: 530; --w: 766; --h: 64">
+        <svg class="a" style="--x: 30; --y: 12; --w: 40; --h: 37" aria-hidden="true"><use href="#i-warn"/></svg>
+        <p class="tx title gold" style="--x: 93; --t: 16; --f: 14.7">Important</p>
+        <p class="tx desc" style="--x: 93; --t: 36; --f: 12">If the borrower defaults, vouchers can lose some of their locked $WIF.</p>
       </div>
+      <button class="a btn-gold cta" data-act="start-vouch" style="--x: 847; --y: 533; --w: 184; --h: 57">Start Vouching<svg class="chev" aria-hidden="true"><use href="#i-chev"/></svg></button>
+      <a class="a btn-line gold-line cta" href="#map" data-act="tour" style="--x: 1049; --y: 533; --w: 180; --h: 57">Explore the Map<svg class="chev" aria-hidden="true"><use href="#i-chev"/></svg></a>
+    </section>
+
+    <section class="wrap" id="vouch-form" aria-label="Vouch"><div class="panel" data-panel="vouch"></div></section>
+
+    <section class="wrap" id="lend">
+      <header class="head"><span class="pill pill--flow"><i class="pill__dot"></i><span>Lend to the Pool</span></span>
+        <h2 class="hd">Lend USDG. <b class="gold">Earn the fees.</b></h2></header>
       <dl class="stats" data-stats>
         <div><dt>Pool</dt><dd data-k="pool">—</dd></div>
         <div><dt>Lent out</dt><dd data-k="out">—</dd></div>
@@ -34,41 +243,21 @@
         <div><dt>$WIF burned</dt><dd data-k="burned">—</dd></div>
         <div><dt>1M $WIF</dt><dd data-k="price">—</dd></div>
       </dl>
+      <div class="panel" data-panel="lend"></div>
     </section>
 
-    <section class="map-wrap" aria-label="The flat map">
-      <div class="map-head">
-        <h2>The flat map</h2>
-        <p>Every road is a person. Each repaid loan lays a stretch. Stones are the $WIF behind them. When two people back each other, their roads connect.</p>
-      </div>
-      <div class="map" data-map></div>
-      <ul class="legend">
-        <li><i class="sw sw--0"></i><span>Dirt path · up to $<span data-cap="0">10</span></span></li>
-        <li><i class="sw sw--1"></i><span>Gravel · $<span data-cap="1">25</span></span></li>
-        <li><i class="sw sw--2"></i><span>Cobblestone · $<span data-cap="2">50</span></span></li>
-        <li><i class="sw sw--3"></i><span>Highway · $<span data-cap="3">100</span></span></li>
-        <li><i class="sw sw--x"></i>Cracked (defaulted)</li>
-      </ul>
+    <section class="wrap" id="believers">
+      <header class="head"><span class="pill pill--flow"><i class="pill__dot"></i><span>Believers</span></span>
+        <h2 class="hd">The best at <b class="gold">spotting who repays.</b></h2></header>
+      <div class="panel" data-panel="believers"></div>
     </section>
 
-    <nav class="tabs" role="tablist">
-      <button role="tab" data-tab="road" aria-selected="true">Your road</button>
-      <button role="tab" data-tab="vouch" aria-selected="false">Vouch</button>
-      <button role="tab" data-tab="lend" aria-selected="false">Lend</button>
-      <button role="tab" data-tab="believers" aria-selected="false">Believers</button>
-    </nav>
-
-    <section class="panel" data-panel="road"></section>
-    <section class="panel" data-panel="vouch" hidden></section>
-    <section class="panel" data-panel="lend" hidden></section>
-    <section class="panel" data-panel="believers" hidden></section>
-
-    <section class="panel panel--test" data-test hidden></section>
+    <section class="wrap panel--test" data-test hidden></section>
   </main>
 
   <div class="toast" data-toast role="status" aria-live="polite" hidden></div>
 
-  <footer class="foot">
+  <footer class="foot wrap">
     <p>Pave has no owner and no admin: the rules are fixed in the contract. Loans are small on purpose. $WIF is a memecoin; vouch and lend only what you can afford to lose. Not affiliated with Robinhood.</p>
     <p data-links></p>
   </footer>

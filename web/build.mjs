@@ -15,6 +15,11 @@ const ROOT = join(HERE, '..')
 
 await mkdir(join(OUT, 'deployments'), { recursive: true })
 for (const f of ['index.html', 'style.css', 'favicon.svg']) await copyFile(join(HERE, f), join(OUT, f))
+// The pictures cut from the Figma frames (design/cut.py) and the typeface.
+for (const dir of ['assets', 'fonts']) {
+  await mkdir(join(OUT, dir), { recursive: true })
+  for (const f of await readdir(join(HERE, dir))) await copyFile(join(HERE, dir, f), join(OUT, dir, f))
+}
 
 // ABIs straight from the compiled contracts (run `npx hardhat compile` in the parent first).
 const abi = async (path) => JSON.parse(await readFile(join(ROOT, 'artifacts', 'contracts', path), 'utf8')).abi

@@ -1,5 +1,5 @@
 // TEST ONLY. Drives the real page in headless Chrome against a local Hardhat chain, through a
-// whole road: two vouches, a mutual vouch (a link on the map), borrow, repay (gravel), a second
+// whole road: two vouches, a mutual vouch, borrow, repay (gravel), a second
 // loan left unpaid, a stranger ends it, the lender collects the $WIF. Every action is a click on
 // the page. The wallet is a stand-in injected as window.ethereum that forwards to the local node,
 // whose test accounts are unlocked (?wallet=N picks the account). Screenshots go to SHOTS.
@@ -56,6 +56,8 @@ const evaluate = async (expression) => {
   return r.result?.result?.value
 }
 await send('Page.enable')
+  // Motion off: numbers land at once, and every section shows as designed without scrolling.
+  await send('Emulation.setEmulatedMedia', { features: [{ name: 'prefers-reduced-motion', value: 'reduce' }] })
 await send('Runtime.enable')
 const size = (width, height, mobile = false) => send('Emulation.setDeviceMetricsOverride', { width, height, deviceScaleFactor: 1, mobile })
 await size(1440, 1200)
@@ -93,7 +95,6 @@ async function open(query) {
   }
   await sleep(400)
 }
-async function tab(name) { await evaluate(`document.querySelector('[data-tab="${name}"]').click()`) }
 async function type(key, value) {
   await evaluate(`(() => { const i = document.querySelector('[data-in="${key}"]'); i.value = ${JSON.stringify(value)}; i.dispatchEvent(new Event('input', { bubbles: true })) })()`)
 }
@@ -118,7 +119,7 @@ try {
 
   console.log('1. Alice opens the borrower\'s link, gets test $WIF and vouches 100,000')
   await open(`wallet=${ALICE}&for=${borrower}`)
-  check((await evaluate(`document.querySelector('[data-panel="vouch"]').hidden`)) === false, 'a vouch link opens the Vouch tab')
+  check((await evaluate(`document.querySelector('[data-in="vouch-for"]').value`))?.toLowerCase() === borrower.toLowerCase(), 'a vouch link fills in the vouch form')
   await click('mint-wif')
   await type('vouch-amt', '100000')
   await click('vouch')
@@ -147,15 +148,17 @@ try {
   await click('borrow')
   await shot('borrowed')
   check((await text('[data-panel="road"] [data-act="repay"]'))?.startsWith('Repay $10.30'), 'the repay button asks for $10.30')
+  check((await text('[data-p="status"]')) === 'Active' && (await text('[data-p="backing"]')) === '150,000', 'the map card shows the open loan and 150,000 $WIF behind the road')
 
   console.log('5. Repay: the road reaches gravel, the vouchers earn')
   check(((await text('[data-panel="road"] .note--warn')) ?? '').includes('more USDG needed'), 'the page warns the borrower is short of the fee')
   await click('mint-usdg')
   await click('repay')
   check((await text('.levelname')) === 'Gravel', 'road level is Gravel')
+  check((await text('[data-p="level"]')) === 'Level 1' && (await text('[data-p="pct"]')) === '0%', 'the map card says Level 1, 0% toward cobblestone')
   await shot('gravel')
   await open(`wallet=${ALICE}`)
-  await tab('vouch')
+  check((await text('[data-r="claim"]')) === '$0.06', 'the rewards card shows $0.06 to collect')
   check((await text('[data-act="claim-rewards"]'))?.startsWith('Collect $0.06'), 'Alice can collect her share of the fee ($0.06)')
   await click('claim-rewards')
 
@@ -164,7 +167,6 @@ try {
   await click('borrow')
   await chainTime(13 * 60)
   await open(`wallet=${STRANGER}`)
-  await tab('vouch')
   for (let i = 0; i < 40 && !(await evaluate(`!!document.querySelector('[data-act="default"]')`)); i++) await sleep(250)
   await click('default')
   await shot('defaulted')
@@ -172,18 +174,15 @@ try {
   check(burned && burned !== '0', `$WIF burned shows ${burned}`)
   await open(`wallet=${BORROWER}`)
   check((await text('.levelname')) === 'Cracked', "the borrower's road is cracked")
+  check((await text('[data-p="status"]')) === 'Defaulted' && (await text('[data-p="level"]')) === 'Cracked', 'the map card says Cracked, Defaulted')
 
   console.log('7. The lender collects the $WIF from the default')
   await open(`wallet=${LENDER}`)
-  await tab('lend')
   await click('claim-wif')
 
-  console.log('8. Believers board and the map')
-  await tab('believers')
+  console.log('8. Believers board')
   const rows = await evaluate(`document.querySelectorAll('.board tbody tr').length`)
   check(rows >= 3, `Believers board lists ${rows} people`)
-  check((await evaluate(`document.querySelectorAll('.map .road').length`)) >= 2, 'the map shows the roads')
-  check((await evaluate(`document.querySelectorAll('.map path[stroke-dasharray="3 5"]').length`)) >= 1, 'the mutual vouch is drawn as a link')
   await shot('believers')
 
   console.log('9. Phone width: nothing past the page edge')

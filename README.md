@@ -40,6 +40,25 @@ npm test            # 27 unit tests
 npm run test:fork   # 4 tests on a copy of Robinhood Chain mainnet (real $WIF, USDG, pool, Chainlink)
 ```
 
+### The site
+
+A static page in `web/` that reads everything from the chain; actions are signed in the visitor's
+wallet. To run it all on your computer (a local chain, Pave with test tokens, the price keeper and
+the site on http://127.0.0.1:7930, with demo people A-D so no wallet app is needed):
+
+```sh
+cd web && npm install && cd ..
+npm run local
+```
+
+Browser tests, with `npm run local` running: `node web/test/e2e.mjs` (the whole road: vouch,
+borrow, repay, default, collect) and `node web/test/demo.mjs`.
+
+The look comes from the Figma frames in `web/design/src`. `web/design/cut.py` cuts the site's
+pictures from them (`web/assets`) and paints out their baked-in text so the page sets it live;
+`upscale.py` makes the 2x frames it prefers; `shoot.mjs` and `compare.py` lay the running site
+over each frame to check it.
+
 Security: see [docs/AUDIT.md](docs/AUDIT.md). The contract has no owner, admin or upgrade.
 
 $WIF is a memecoin. Pave is an experiment: lend and vouch only what you can afford to lose.

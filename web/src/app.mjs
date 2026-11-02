@@ -6,7 +6,7 @@ import { privateKeyToAccount, generatePrivateKey } from 'viem/accounts'
 
 /*
   The Pave site. Everything is read from the chain: the contract's views for numbers, and its
-  events for the map, the stones and the Believers board. Nothing in the page holds a key; every
+  events for the roads, the stones and the Believers board. Nothing in the page holds a key; every
   action is signed in the wallet the visitor connects, after a simulation that turns a revert
   into a plain sentence.
 */
@@ -15,8 +15,7 @@ const $ = (s, el = document) => el.querySelector(s)
 const $$ = (s, el = document) => [...el.querySelectorAll(s)]
 const LEVELS = ['Dirt path', 'Gravel', 'Cobblestone', 'Highway']
 const NEXT_AT = [1, 3, 6] // loans repaid to reach gravel, cobblestone, highway
-const ROAD_COLORS = ['#8b6b4a', '#a7a69b', '#d2b77a', '#f4f3ea']
-const MAX = 2n ** 256n - 1n
+const LEVEL_AT = [0, 1, 3, 6]
 
 const ERRORS = {
   SelfVouch: "You can't vouch for yourself. Ask a friend to vouch for you.",
@@ -40,7 +39,7 @@ const ERRORS = {
 const S = {
   dep: null, abis: null, pub: null, wallet: null, me: null, chain: null,
   params: {}, block: 0n, events: [], model: null, credit: null, myVouches: [], pool: null, prices: null,
-  tab: 'road', busy: false,
+  busy: false,
 }
 
 // ------------------------------------------------------------------ formatting
@@ -54,6 +53,9 @@ const wifFmt = (x) => {
   return n.toLocaleString('en-US', { maximumFractionDigits: 0 })
 }
 const short = (a) => (a ? a.slice(0, 6) + '…' + a.slice(-4) : '—')
+const wifWhole = (x) => (x == null ? '—' : Math.floor(Number(x) / 1e18).toLocaleString('en-US'))
+/// $WIF in USDG units, at the pool's price (prices()[3] is what 1M $WIF is worth).
+const wifUsd = (x) => (S.prices ? (x * S.prices[3]) / 10n ** 24n : null)
 const same = (a, b) => a && b && a.toLowerCase() === b.toLowerCase()
 const hue = (a) => parseInt(a.slice(2, 8), 16) % 360
 const dot = (a) => `background: linear-gradient(135deg, hsl(${hue(a)} 55% 58%), hsl(${(hue(a) + 50) % 360} 50% 38%))`
@@ -302,7 +304,18 @@ async function refresh() {
       const path = credit ? credit.path : await read('pathOf', [S.me])
       const loan = await read('loans', [S.me])
       const shareValue = shares ? await read('shareValue', [shares]) : 0n
-      S.mine = { credit, path, loan, vouches, shares, shareValue, pendingWif, rewards, wifBal, usdgBal, eth }
+      // The roads this wallet backs, and what each open loan there would pay this wallet when repaid.
+      const backed = []
+      for (const road of S.model.roads.values()) {
+        const v = road.vouches.get(S.me.toLowerCase())
+        if (!v) continue
+        let total = 0n
+        for (const o of road.vouches.values()) total += o.amount
+        const l = road.open ? await read('loans', [road.addr]) : null
+        const fee = l ? (l[1] * BigInt(S.params.voucherShareBps ?? 0n)) / 10_000n : 0n
+        backed.push({ road, amount: v.amount, potential: total ? (fee * v.amount) / total : 0n })
+      }
+      S.mine = { credit, path, loan, vouches, shares, shareValue, pendingWif, rewards, wifBal, usdgBal, eth, backed }
     } else {
       S.mine = null
     }
@@ -313,90 +326,80 @@ async function refresh() {
   }
 }
 
-// ------------------------------------------------------------------ the map
+// ------------------------------------------------------------------ the map card, rewards preview
 
-function renderMap() {
-  const W = 1000, H = 460
-  const roads = S.model.shown
-  const box = $('[data-map]')
-  // Latitude and longitude lines on a flat world.
-  let grid = ''
-  for (let y = -460; y < H + 460; y += 30) grid += `<path d="M-1000 ${y} H${W + 1000}" stroke="#ffffff" stroke-opacity="${y % 90 ? '.02' : '.045'}"/>`
-  for (let x = -1000; x < W + 1000; x += 30) grid += `<path d="M${x} -460 V${H + 460}" stroke="#ffffff" stroke-opacity="${x % 90 ? '.02' : '.045'}"/>`
-  grid += `<ellipse cx="${W / 2}" cy="${H / 2}" rx="${W * 0.46}" ry="${H * 0.42}" fill="none" stroke="#c8f25a" stroke-opacity=".08" stroke-dasharray="2 8"/>`
-  const pts = []
+const calm = () => matchMedia('(prefers-reduced-motion: reduce)').matches
 
-  // Place roads on a spiral from the centre, in the order they first appeared: a few roads sit
-  // together in the middle, and the map grows outward as more people join. Positions never move.
-  const cw = 170
-  const spots = new Map()
-  roads.forEach((r, i) => {
-    const h = parseInt(r.addr.slice(2, 10), 16)
-    const t = i * 2.39996 // golden angle
-    const rad = 95 * Math.sqrt(i)
-    spots.set(r.addr.toLowerCase(), { x: W / 2 - 40 + Math.cos(t) * rad * 1.7, y: H / 2 + Math.sin(t) * rad, h })
-  })
-
-  // Connections: two people who back each other.
-  let links = ''
-  const seen = new Set()
-  for (const r of roads) {
-    for (const v of r.vouches.values()) {
-      const other = S.model.roads.get(v.addr.toLowerCase())
-      if (!other || !other.vouches.has(r.addr.toLowerCase())) continue
-      const key = [r.addr, v.addr].map((x) => x.toLowerCase()).sort().join()
-      if (seen.has(key)) continue
-      seen.add(key)
-      const a = spots.get(r.addr.toLowerCase()), b = spots.get(v.addr.toLowerCase())
-      if (a && b) links += `<path d="M${a.x} ${a.y} Q${(a.x + b.x) / 2} ${Math.min(a.y, b.y) - 40} ${b.x} ${b.y}" fill="none" stroke="#c8f25a" stroke-opacity=".5" stroke-width="1.5" stroke-dasharray="3 5"/>`
-    }
+/// Sets a number's text, counting up (or down) from the one shown, in the same format ("$1,250.00").
+function countTo(el, text) {
+  const num = (t) => {
+    const m = /^(\D*?)([\d,]+(?:\.\d+)?)(.*)$/.exec(t)
+    return m && { pre: m[1], n: parseFloat(m[2].replace(/,/g, '')), dp: (m[2].split('.')[1] ?? '').length, post: m[3] }
   }
+  const to = num(text)
+  const from = num(el.textContent) ?? (to && { ...to, n: 0 })
+  cancelAnimationFrame(el.raf)
+  if (!to || calm() || from.pre !== to.pre || from.n === to.n) { el.textContent = text; return }
+  const t0 = performance.now()
+  const step = (t) => {
+    const k = Math.min(1, (t - t0) / 900), e = 1 - (1 - k) ** 3
+    el.textContent = to.pre + (from.n + (to.n - from.n) * e).toLocaleString('en-US', { minimumFractionDigits: to.dp, maximumFractionDigits: to.dp }) + to.post
+    if (k < 1) el.raf = requestAnimationFrame(step)
+    else el.textContent = text
+  }
+  el.raf = requestAnimationFrame(step)
+}
 
-  let body = ''
-  for (const r of roads) {
-    const p = spots.get(r.addr.toLowerCase())
-    const lv = level(r.repaid)
-    const len = Math.min(cw - 30, 34 + 22 * r.repaid)
-    const ang = ((p.h >> 4) % 50 - 25) * Math.PI / 180
-    const ex = p.x + Math.cos(ang) * len, ey = p.y + Math.sin(ang) * len
-    pts.push([p.x, p.y - 30], [p.x, p.y + 26], [ex, ey])
-    const cx = (p.x + ex) / 2 + Math.sin(ang) * 14, cy = (p.y + ey) / 2 - Math.cos(ang) * 14
-    const d = `M${p.x.toFixed(1)} ${p.y.toFixed(1)} Q${cx.toFixed(1)} ${cy.toFixed(1)} ${ex.toFixed(1)} ${ey.toFixed(1)}`
-    const color = r.defaulted ? '#5d4d44' : ROAD_COLORS[lv]
-    const dash = r.defaulted ? ' stroke-dasharray="6 5"' : ''
-    let total = 0n
-    for (const v of r.vouches.values()) total += v.amount
-    let stones = ''
-    let i = 0
-    for (const v of r.vouches.values()) {
-      const rad = Math.max(3, Math.min(10, 2.5 + Math.sqrt(Number(v.amount) / 1e18 / 10_000) * 2))
-      const a2 = (i * 137.5) * Math.PI / 180, dist = 10 + i * 2.2
-      stones += `<circle cx="${(p.x + Math.cos(a2) * dist).toFixed(1)}" cy="${(p.y - 14 + Math.sin(a2) * dist * 0.6).toFixed(1)}" r="${rad.toFixed(1)}" fill="hsl(${hue(v.addr)} 45% 62%)" stroke="#0e0f0c" stroke-width="1.5"/>`
-      i++
-    }
-    const open = r.open ? `<circle cx="${ex.toFixed(1)}" cy="${ey.toFixed(1)}" r="4" fill="none" stroke="#c8f25a" stroke-width="2"><animate attributeName="r" values="3;7;3" dur="1.6s" repeatCount="indefinite"/></circle>` : ''
-    const highway = lv === 3 && !r.defaulted ? `<path d="${d}" stroke="#c8f25a" stroke-width="1.5" stroke-dasharray="6 6" fill="none"/>` : ''
-    const me = same(r.addr, S.me) ? ' me' : ''
-    const tip = `${short(r.addr)}: ${r.defaulted ? 'defaulted' : LEVELS[lv]}, ${r.repaid} repaid, ${r.vouches.size} stones (${wifFmt(total)} $WIF)${r.open ? ', loan open' : ''}`
-    body += `<g class="road${me}" data-road="${r.addr}"><title>${tip}</title>
-      <path class="road__line" d="${d}" stroke="${color}" stroke-width="7" stroke-linecap="round" fill="none"${dash}/>${highway}${open}${stones}
-      <text x="${p.x}" y="${p.y + 22}" fill="#7f7d70" style="font-size: var(--fs)" font-family="ui-monospace, monospace">${short(r.addr)}</text></g>`
+/// Text and controls in each section rise into place the first time they scroll into view.
+function reveal() {
+  if (calm() || !('IntersectionObserver' in window)) return
+  const io = new IntersectionObserver((entries) => {
+    for (const e of entries) if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target) }
+  }, { threshold: .2 })
+  for (const part of $$('.frame, #lend, #believers')) {
+    const els = $$(':scope > .tx, :scope .lines > .tx, :scope > .a:not(.pic):not(.fx), :scope > .pic > .k, :scope > .hscroll .k, :scope > .head > *, :scope > .stats', part)
+    els.forEach((el, i) => { el.classList.add('rv'); el.style.setProperty('--rd', Math.min(i * 60, 600) + 'ms'); io.observe(el) })
   }
-  // Fit the view to the roads (a few roads fill the frame; many show the whole world).
-  let vb = [0, 0, W, H]
-  if (pts.length) {
-    let x0 = Math.min(...pts.map((q) => q[0])) - 60, x1 = Math.max(...pts.map((q) => q[0])) + 60
-    let y0 = Math.min(...pts.map((q) => q[1])) - 40, y1 = Math.max(...pts.map((q) => q[1])) + 40
-    let w = Math.max(x1 - x0, 360), h = Math.max(y1 - y0, 150)
-    if (w / h > W / H) h = w * H / W; else w = h * W / H
-    const cx = (x0 + x1) / 2, cy = (y0 + y1) / 2
-    vb = [cx - w / 2, cy - h / 2, w, h].map((v) => +v.toFixed(1))
+}
+
+function renderProfile() {
+  const p = (k) => $(`[data-p="${k}"]`)
+  const m = S.mine
+  const status = (cls, label) => { const el = p('status'); el.className = `a status status--${cls}`; el.lastElementChild.textContent = label }
+  if (!m) {
+    p('addr').textContent = 'Not connected'
+    p('ext').hidden = true
+    p('level').textContent = 'Level 0'
+    p('backing').textContent = '—'
+    status('off', 'None')
+    p('bar').style.width = '0%'
+    p('pct').textContent = '0%'
+    return
   }
-  box.innerHTML = `<svg viewBox="${vb.join(' ')}" style="--fs: ${(vb[2] / 85).toFixed(1)}px" role="img" aria-label="Map of ${roads.length} roads">${grid}${links}${body}</svg>` +
-    (roads.length ? '' : `<div class="map-empty">No roads yet. Be the first: connect, share your link, and get vouched for.</div>`)
-  $$('.road', box).forEach((g) => g.addEventListener('click', () => {
-    openVouch(g.dataset.road)
-  }))
+  const repaid = Number(m.path.repaid), lv = level(repaid)
+  p('addr').textContent = S.me.slice(0, 4) + '...' + S.me.slice(-4)
+  const ext = p('ext')
+  ext.hidden = !S.dep.explorer
+  if (S.dep.explorer) ext.href = `${S.dep.explorer}/address/${S.me}`
+  p('level').textContent = m.path.defaulted ? 'Cracked' : `Level ${lv}`
+  countTo(p('backing'), wifWhole(m.credit ? m.credit.vouchedWif : m.vouches.reduce((s, v) => s + v.amount, 0n)))
+  if (m.path.defaulted) status('bad', 'Defaulted')
+  else if (m.loan[0] > 0n) now() > m.loan[2] ? status('warn', 'Overdue') : status('ok', 'Active')
+  else status('off', 'None')
+  const pct = m.path.defaulted ? 0 : lv === 3 ? 100 : Math.round(((repaid - LEVEL_AT[lv]) / (NEXT_AT[lv] - LEVEL_AT[lv])) * 100)
+  p('bar').style.width = pct + '%'
+  p('pct').textContent = pct + '%'
+}
+
+function renderRewards() {
+  const r = (k, v) => countTo($(`[data-r="${k}"]`), v)
+  const b = S.mine?.backed
+  if (!b) { for (const k of ['vouched', 'potential', 'count', 'claim']) r(k, '—'); return }
+  const usdShort = (x) => (x == null ? '—' : x >= 100_000_000n ? '$' + Math.round(Number(x) / 1e6).toLocaleString('en-US') : usd(x))
+  r('vouched', usdShort(wifUsd(b.reduce((s, x) => s + x.amount, 0n))))
+  r('potential', usdShort(b.reduce((s, x) => s + x.potential, 0n)))
+  r('count', String(b.length))
+  r('claim', usdShort(S.mine.rewards))
 }
 
 // ------------------------------------------------------------------ panels
@@ -463,7 +466,7 @@ function roadPanel() {
         <div><p class="lbl">Your road</p><p class="levelname">${path.defaulted ? 'Cracked' : LEVELS[lv]}</p></div>
         <span class="note">${path.defaulted ? '' : toNext}</span>
       </div>
-      <div class="strip" aria-label="${repaid} loans repaid">${tiles}</div>
+      <div class="strip-road" aria-label="${repaid} loans repaid">${tiles}</div>
       <dl class="kv">
         <div><dt>Can borrow now</dt><dd>${c ? usd(c.available) : '—'}</dd></div>
         <div><dt>Road limit</dt><dd>${c ? usd(c.levelCap) : '—'}</dd></div>
@@ -558,7 +561,7 @@ function believersPanel() {
     })
     .sort((a, b) => b.score - a.score || b.backed.size - a.backed.size)
   const body = rows.length
-    ? rows.map((b, i) => `<tr${same(b.addr, S.me) ? ' style="background: #1d2210"' : ''}><td>${i + 1}</td><td><span class="addr">${short(b.addr)}</span>${b.badges.map((x) => `<span class="badge">${x}</span>`).join('')}</td>
+    ? rows.map((b, i) => `<tr${same(b.addr, S.me) ? ' class="me"' : ''}><td>${i + 1}</td><td><span class="addr-mono">${short(b.addr)}</span>${b.badges.map((x) => `<span class="badge">${x}</span>`).join('')}</td>
         <td class="num">${b.backed.size}</td><td class="num">${b.repaidBacked}</td><td class="num">${b.slashed}</td><td class="num">${usd(b.earned)}</td></tr>`).join('')
     : '<tr><td colspan="6" class="note">No believers yet.</td></tr>'
   return `<div class="card"><h3>Believers</h3><p class="sub">The people best at spotting who will repay. Ranked by loans repaid by people they backed, not by how much they hold.
@@ -577,8 +580,9 @@ function testPanel() {
       <button class="btn btn--ghost btn--small" data-act="price-down">$WIF ÷2</button>
       <button class="btn btn--ghost btn--small" data-act="poke">Record price</button>
       ${isLocal() ? '<button class="btn btn--ghost btn--small" data-act="eth-local">Get 100 local ETH</button>' : ''}
+      ${isLocal() ? `<button class="btn btn--small" data-act="demo-next">${S.demo ? `Person ${DEMO[S.demoIndex]} → ${DEMO[(S.demoIndex + 1) % 4]}` : 'Demo person A'}</button>` : ''}
     </div>
-    ${isLocal() ? `<p class="note">Demo people: you are ${S.demo ? `person <b>${DEMO[S.demoIndex]}</b>` : 'using your own wallet'}. Switch with the button at the top to play the borrower and the friends.</p>` : ''}
+    ${isLocal() ? `<p class="note">Demo people: you are ${S.demo ? `person <b>${DEMO[S.demoIndex]}</b>` : 'using your own wallet'}. Switch with the gold button to play the borrower and the friends.</p>` : ''}
     <p class="note">${m ? `You hold ${wifFmt(m.wifBal)} test $WIF, ${usd(m.usdgBal)} test USDG and ${(Number(m.eth) / 1e18).toFixed(4)} testnet ETH for gas.` : 'Connect a wallet to use these.'} Price marks here last ${S.params.markPeriod ?? '?'}s, loans ${dur(BigInt(S.params.loanTerm ?? 0n)).replace('in ', '')}.</p></div>`
 }
 
@@ -591,10 +595,9 @@ function render() {
   k('vouched', wifFmt(m.vouched))
   k('burned', wifFmt(m.burned))
   k('price', S.prices ? usd(S.prices[3]) : 'paused')
-  $('[data-act="connect"]').textContent = S.me ? short(S.me) : isLocal() && !window.ethereum ? 'Use demo wallet' : 'Connect wallet'
-  const d = $('[data-act="demo-next"]')
-  if (d) { d.hidden = !isLocal(); d.textContent = S.demo ? `Person ${DEMO[S.demoIndex]} → ${DEMO[(S.demoIndex + 1) % 4]}` : 'Demo person A' }
-  renderMap()
+  $('[data-connect]').textContent = S.me ? short(S.me) : isLocal() && !window.ethereum ? 'Use demo wallet' : 'Connect Wallet'
+  renderProfile()
+  renderRewards()
   // Keep what someone is typing when the panels refresh.
   const typed = Object.fromEntries($$('[data-in]').map((i) => [i.dataset.in, i.value]))
   const focus = document.activeElement?.dataset?.in
@@ -609,17 +612,125 @@ function render() {
   if (focus) $(`[data-in="${focus}"]`)?.focus()
 }
 
-function showTab(name) {
-  S.tab = name
-  $$('[data-tab]').forEach((b) => b.setAttribute('aria-selected', String(b.dataset.tab === name)))
-  $$('[data-panel]').forEach((p) => { p.hidden = p.dataset.panel !== name })
+/// The vouch form, filled in for someone.
+function openVouch(addr, smooth = true) {
+  if (addr && isAddress(addr)) S.vouchFor = getAddress(addr)
+  render()
+  $('#vouch-form').scrollIntoView({ behavior: smooth ? 'smooth' : 'auto', block: 'start' })
+  $('[data-in="vouch-amt"]')?.focus({ preventScroll: true })
 }
 
-function openVouch(addr) {
-  if (addr && isAddress(addr)) S.vouchFor = getAddress(addr)
-  showTab('vouch')
-  render()
-  $('[data-panel="vouch"]').scrollIntoView({ behavior: 'smooth', block: 'start' })
+// ------------------------------------------------------------------ the map tour
+// Labels for the flat map, shown one at a time: by "Explore the Map" (a tour, from the first),
+// or by clicking that part of the map. x, y, w, h are design pixels of the map picture
+// (x 0-905, y 246-580); the words use the contract's own numbers once they're read.
+
+const capOf = (i) => (S.params['cap' + i] != null ? '$' + Number(S.params['cap' + i]) / 1e6 : ['$10', '$25', '$50', '$100'][i])
+const pctOf = (bps, fallback) => (bps != null ? Number(bps) / 100 + '%' : fallback)
+const SPOTS = [
+  { x: 452, y: 318, w: 120, h: 90, title: () => 'The Pave pool',
+    text: () => `Lenders' USDG waits here. Loans go out along the roads, and every repayment comes back with a ${pctOf(S.params.feeBps, '3%')} fee.` },
+  { x: 375, y: 410, w: 56, h: 60, title: () => 'A person',
+    text: () => 'Every pin is a wallet. Connect yours and share your link: friends who believe in you vouch for it.' },
+  { x: 485, y: 497, w: 40, h: 36, title: () => '$WIF stones',
+    text: () => `The $WIF friends lock behind you. After ${S.params.vouchMaturity != null ? dur(BigInt(S.params.vouchMaturity)).replace('in ', '') : '3 days'} it lets you borrow 40% of its value, and they earn ${pctOf(S.params.voucherShareBps, '30%')} of every fee you pay.` },
+  { x: 262, y: 452, w: 90, h: 40, title: () => `Dirt path · up to ${capOf(0)}`,
+    text: () => 'Where every road starts. Repay one loan on time to lay gravel.' },
+  { x: 572, y: 333, w: 80, h: 30, title: () => `Gravel · up to ${capOf(1)}`,
+    text: () => 'One loan repaid. Two more reach cobblestone.' },
+  { x: 232, y: 362, w: 90, h: 34, title: () => `Cobblestone · up to ${capOf(2)}`,
+    text: () => 'Three loans repaid. Three more reach the highway.' },
+  { x: 565, y: 428, w: 90, h: 44, title: () => `Highway · up to ${capOf(3)}`,
+    text: () => 'Six loans repaid: the best credit on the map.' },
+  { x: 738, y: 425, w: 100, h: 70, title: () => 'Cracked road',
+    text: () => "A loan wasn't repaid. Up to twice the debt in $WIF is cut from its stones: the lenders get one share, the rest is burned. This road can't borrow again." },
+]
+const tour = { i: -1 }
+
+function setupTour() {
+  const box = $('[data-map]')
+  if (!box) return
+  const at = (v, total, from = 0) => ((v - from) / total) * 100 + '%'
+  SPOTS.forEach((p, i) => {
+    const b = document.createElement('button')
+    b.className = 'spot'
+    b.dataset.spot = i
+    b.setAttribute('aria-label', p.title())
+    Object.assign(b.style, { left: at(p.x, 905), top: at(p.y, 334, 246), width: at(p.w, 905), height: at(p.h, 334) })
+    box.append(b)
+  })
+  const tip = document.createElement('div')
+  tip.className = 'tip'
+  tip.hidden = true
+  tip.setAttribute('role', 'dialog')
+  tip.setAttribute('aria-live', 'polite')
+  tip.innerHTML = `<i class="tip__arrow"></i><button class="tip__x" data-tip="close" aria-label="Close">×</button>
+    <span class="tip__n"></span><b></b><p></p>
+    <div class="tip__nav"><button data-tip="prev">‹ Back</button><button class="next" data-tip="next">Next ›</button></div>`
+  box.append(tip)
+
+  box.addEventListener('click', (e) => {
+    const s = e.target.closest('[data-spot]')
+    if (s) return showSpot(Number(s.dataset.spot))
+    const t = e.target.closest('[data-tip]')?.dataset.tip
+    if (t === 'close') hideSpot()
+    if (t === 'next') showSpot(tour.i + 1 < SPOTS.length ? tour.i + 1 : -1)
+    if (t === 'prev') showSpot(Math.max(0, tour.i - 1))
+  })
+  document.addEventListener('click', (e) => { if (tour.i >= 0 && !e.target.closest('[data-map], [data-act="tour"]')) hideSpot() })
+  document.addEventListener('keydown', (e) => {
+    if (tour.i < 0) return
+    if (e.key === 'Escape') hideSpot()
+    if (e.key === 'ArrowRight') showSpot(Math.min(SPOTS.length - 1, tour.i + 1))
+    if (e.key === 'ArrowLeft') showSpot(Math.max(0, tour.i - 1))
+  })
+  addEventListener('resize', () => { if (tour.i >= 0) showSpot(tour.i) })
+}
+
+function showSpot(i) {
+  if (i < 0) return hideSpot()
+  const box = $('[data-map]'), tip = $('.tip', box), p = SPOTS[i]
+  tour.i = i
+  $$('.spot', box).forEach((b) => b.classList.toggle('on', Number(b.dataset.spot) === i))
+  $('.tip__n', tip).textContent = `${i + 1} / ${SPOTS.length}`
+  $('b', tip).textContent = p.title()
+  $('p', tip).textContent = p.text()
+  $('[data-tip="prev"]', tip).disabled = i === 0
+  $('[data-tip="next"]', tip).textContent = i === SPOTS.length - 1 ? 'Done' : 'Next ›'
+  tip.hidden = false
+  // Above the spot when it fits, else below; kept inside the map's width.
+  const W = box.clientWidth, H = box.clientHeight, k = W / 905
+  const cx = p.x * k, cy = (p.y - 246) * k, r = (p.h / 2) * k
+  const w = Math.min(280, W - 16)
+  tip.style.width = w + 'px'
+  const left = Math.min(Math.max(cx - w / 2, 8), W - w - 8)
+  const above = cy - r - tip.offsetHeight - 14 >= -40
+  tip.classList.toggle('below', !above)
+  tip.style.left = left + 'px'
+  tip.style.top = (above ? cy - r - tip.offsetHeight - 14 : Math.min(cy + r + 14, H)) + 'px'
+  tip.style.setProperty('--ax', cx - left + 'px')
+}
+
+function hideSpot() {
+  tour.i = -1
+  const box = $('[data-map]')
+  if (!box) return
+  $('.tip', box).hidden = true
+  $$('.spot', box).forEach((b) => b.classList.remove('on'))
+}
+
+/// The nav link of the section in view is marked.
+function spy() {
+  const links = $$('[data-nav]')
+  const owner = { map: 'map', road: 'road', 'your-road': 'road', vouch: 'vouch', 'vouch-form': 'vouch', lend: 'lend', believers: 'believers' }
+  const seen = new Map()
+  const io = new IntersectionObserver((entries) => {
+    for (const e of entries) seen.set(e.target.id, e.isIntersecting ? e.intersectionRatio : 0)
+    let best = null, ratio = 0
+    for (const [id, r] of seen) if (r > ratio) { best = id; ratio = r }
+    links.forEach((a) => a.setAttribute('aria-current', String(!!best && owner[best] === a.dataset.nav)))
+  }, { threshold: [0, .15, .3, .5, .7] })
+  for (const id of Object.keys(owner)) { const el = document.getElementById(id); if (el) io.observe(el) }
 }
 
 /// Open loans past their grace period, read straight from the contract.
@@ -642,6 +753,15 @@ const val = (key) => $(`[data-in="${key}"]`)?.value
 const ACTIONS = {
   connect: () => (S.me ? null : connect()),
   'demo-next': () => useDemo(S.demo ? (S.demoIndex + 1) % DEMO.length : 0),
+  tour: () => {
+    $('#map').scrollIntoView({ behavior: calm() ? 'auto' : 'smooth', block: 'center' })
+    setTimeout(() => showSpot(0), calm() ? 0 : 700)
+  },
+  'start-vouch': () => {
+    const who = val('pick-for')?.trim()
+    if (who && !isAddress(who)) { toast("That isn't a wallet address. It starts with 0x and has 42 characters.", 'err'); return }
+    openVouch(who)
+  },
   'eth-local': () => act('Local ETH', () => fundLocal(S.me)),
   copy: (b) => { navigator.clipboard?.writeText(b.dataset.text); toast('Link copied.', 'ok') },
   'borrow-max': () => { const i = $('[data-in="borrow"]'); if (i && S.mine?.credit) i.value = (Number(S.mine.credit.available) / 1e6).toFixed(2) },
@@ -730,8 +850,9 @@ async function boot() {
   document.addEventListener('click', (e) => {
     const b = e.target.closest('[data-act]')
     if (b && ACTIONS[b.dataset.act]) { e.preventDefault(); ACTIONS[b.dataset.act](b) }
-    const t = e.target.closest('[data-tab]')
-    if (t) showTab(t.dataset.tab)
+  })
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && e.target.dataset?.in === 'pick-for') ACTIONS['start-vouch']()
   })
   document.addEventListener('input', (e) => {
     if (e.target.dataset?.in === 'vouch-for') {
@@ -741,7 +862,10 @@ async function boot() {
   })
 
   const forAddr = new URLSearchParams(location.search).get('for')
-  if (forAddr && isAddress(forAddr)) { S.vouchFor = getAddress(forAddr); showTab('vouch') }
+  if (forAddr && isAddress(forAddr)) S.vouchFor = getAddress(forAddr)
+  spy()
+  reveal()
+  setupTour()
 
   // Reconnect silently: the demo person from last time (local chain), or a wallet that already trusts this site.
   const lastDemo = store.get('pave-demo-on')
@@ -752,6 +876,7 @@ async function boot() {
   } catch { /* no wallet */ }
 
   await refresh()
+  if (S.vouchFor) openVouch(null, false)
   await findOverdue().then(render).catch(() => {})
   setInterval(async () => { await refresh(); await findOverdue().then(render).catch(() => {}) }, 15_000)
 }

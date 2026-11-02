@@ -5,3 +5,7 @@ cache/
 deployments/local.json
 web/node_modules/
 web/dist/
+# design scratch (check shots, grids), the upscaler's model and its 2x frames (python web/design/upscale.py)
+web/design/_*
+web/design/models
+web/design/src2x
