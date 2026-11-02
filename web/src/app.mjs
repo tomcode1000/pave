@@ -284,7 +284,9 @@ async function connect(eth = window.ethereum, rdns = '') {
     store.set('pave-wallet', rdns)
     store.set('pave-demo-on', '')
     S.wallet = createWalletClient({ chain: S.chain, transport: custom(eth), account: S.me })
-    await ensureChain()
+    // Switching network is asked for now, but connecting doesn't depend on it: reading needs no
+    // wallet, and every transaction asks again before it is signed.
+    ensureChain().catch((e) => toast(`Connected. To sign, switch your wallet to ${S.dep.network}: ${explain(e)}`, 'err'))
     eth.removeAllListeners?.('accountsChanged')
     eth.on?.('accountsChanged', (list) => {
       S.me = list?.[0] ? getAddress(list[0]) : null
@@ -1555,7 +1557,13 @@ async function boot() {
   const asked = new URLSearchParams(location.search).get('net')
   const pick = asked && nets.includes(asked) ? asked
     : nets.includes('robinhood') ? 'robinhood' : nets.includes('robinhood-testnet') ? 'robinhood-testnet' : nets[0]
-  if (!pick) { document.querySelector('main').innerHTML = '<p class="note" style="padding: 40px 0">Pave is not deployed yet.</p>'; return }
+  if (!pick) {
+    // No contract to talk to: the page stays readable, and every wallet button says why it can't go further.
+    const say = () => toast('Pave isn’t live on this site yet: its contract hasn’t been deployed to Robinhood Chain. Try again soon.', 'err')
+    document.addEventListener('click', (e) => { if (e.target.closest('[data-act], a[href^="#/"]')) { e.preventDefault(); say() } }, true)
+    say()
+    return
+  }
   S.dep = await (await fetch(`deployments/${pick}.json`)).json()
   S.abis = await (await fetch('abi.json')).json()
   S.chain = defineChain({
