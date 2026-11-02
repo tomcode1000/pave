@@ -16,6 +16,8 @@ const $$ = (s, el = document) => [...el.querySelectorAll(s)]
 const LEVELS = ['Dirt path', 'Gravel', 'Cobblestone', 'Highway']
 const NEXT_AT = [1, 3, 6] // loans repaid to reach gravel, cobblestone, highway
 const LEVEL_AT = [0, 1, 3, 6]
+// Where Pave lives outside this page (an empty one is left out of the footer).
+const LINKS = { GitHub: 'https://github.com/tomcode1000/pave', X: 'https://x.com/Toluinweb3' }
 
 const ERRORS = {
   SelfVouch: "You can't vouch for yourself. Ask a friend to vouch for you.",
@@ -845,7 +847,9 @@ async function boot() {
   const vals = await Promise.all(names.map((n) => read(n)))
   names.forEach((n, i) => { S.params[n] = vals[i] })
   for (let i = 0; i < 4; i++) { const el = $(`[data-cap="${i}"]`); if (el) el.textContent = String(Number(S.params['cap' + i]) / 1e6) }
-  if (S.dep.explorer) $('[data-links]').innerHTML = `Contract <a href="${S.dep.explorer}/address/${S.dep.Pave}" target="_blank" rel="noopener">${short(S.dep.Pave)}</a> on ${S.dep.network}.`
+  const links = Object.entries(LINKS).filter(([, u]) => u).map(([k, u]) => `<a href="${u}" target="_blank" rel="noopener">${k}</a>`)
+  if (S.dep.explorer) links.unshift(`Contract <a href="${S.dep.explorer}/address/${S.dep.Pave}" target="_blank" rel="noopener">${short(S.dep.Pave)}</a> on ${S.dep.network}`)
+  $('[data-links]').innerHTML = links.join(' · ')
 
   document.addEventListener('click', (e) => {
     const b = e.target.closest('[data-act]')
