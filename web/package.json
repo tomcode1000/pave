@@ -11,5 +11,8 @@
   "devDependencies": {
     "esbuild": "0.28.2",
     "viem": "2.57.4"
+  },
+  "dependencies": {
+    "qrcode-generator": "1.4.4"
   }
 }

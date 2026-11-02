@@ -371,23 +371,23 @@ table.board { width: 100%; border-collapse: collapse; font-size: 14px; }
   .nav .net { right: 166px; }
   @media (max-width: 480px) { .nav .net { display: none; } }
 
-  .frame {
+  .frame:not(.frame--fixed) {
     aspect-ratio: auto; background: none; --s: 1px;
     display: flex; flex-direction: column; align-items: flex-start; gap: 14px; padding: 40px 16px;
   }
-  .frame > .a, .frame > .tx, .frame .lines > .tx, .hscroll > .a { position: static; transform: none; }
-  .frame > .tx, .frame .lines > .tx { white-space: normal; }
-  .frame > .fx-stage { display: none; }
-  .frame .c { align-self: center; text-align: center; }
-  .frame .lines > .tx { display: block; font-size: 38px; line-height: 1.06; margin: 0; }
-  .frame .lines > .tx + .tx { margin-top: -10px; }
-  .frame > .lede { font-size: 16px; line-height: 1.5; }
-  .frame > .lede br { display: none; }
-  .frame > .pic, .hscroll > .pic { position: relative; inset: auto; }
-  .frame > .pic { width: 100%; height: auto; }
-  .frame > .pic > img:not(.coin) { height: auto; }
-  .frame > .pic { max-width: 440px; align-self: center; }
-  .frame > .pic.hands { order: -1; max-width: 360px; }
+  .frame:not(.frame--fixed) > .a, .frame:not(.frame--fixed) > .tx, .frame:not(.frame--fixed) .lines > .tx, .hscroll > .a { position: static; transform: none; }
+  .frame:not(.frame--fixed) > .tx, .frame:not(.frame--fixed) .lines > .tx { white-space: normal; }
+  .frame:not(.frame--fixed) > .fx-stage { display: none; }
+  .frame:not(.frame--fixed) .c { align-self: center; text-align: center; }
+  .frame:not(.frame--fixed) .lines > .tx { display: block; font-size: 38px; line-height: 1.06; margin: 0; }
+  .frame:not(.frame--fixed) .lines > .tx + .tx { margin-top: -10px; }
+  .frame:not(.frame--fixed) > .lede { font-size: 16px; line-height: 1.5; }
+  .frame:not(.frame--fixed) > .lede br { display: none; }
+  .frame:not(.frame--fixed) > .pic, .hscroll > .pic { position: relative; inset: auto; }
+  .frame:not(.frame--fixed) > .pic { width: 100%; height: auto; }
+  .frame:not(.frame--fixed) > .pic > img:not(.coin) { height: auto; }
+  .frame:not(.frame--fixed) > .pic { max-width: 440px; align-self: center; }
+  .frame:not(.frame--fixed) > .pic.hands { order: -1; max-width: 360px; }
   .hscroll { display: block; width: calc(100% + 32px); margin: 0 -16px; overflow-x: auto; padding: 0 16px; }
   .hscroll > .pic { width: 820px; height: auto; }
   .hscroll > .pic > img { height: auto; }
@@ -415,3 +415,22 @@ table.board { width: 100%; border-collapse: collapse; font-size: 14px; }
   .grid2 { grid-template-columns: 1fr; }
   .stats { grid-template-columns: repeat(2, 1fr); }
 }
+
+/* ------------------------------------------------------------------ frames whose words are in the picture */
+.frame--full { aspect-ratio: 1280 / 720; }
+.hit { display: block; padding: 0; border: 0; background: none; color: transparent; font-size: 0; overflow: hidden; cursor: pointer; border-radius: calc(6 * var(--s)); }
+.hit:hover, .hit:focus-visible { background: rgba(246, 182, 58, .07); outline: none; }
+.hit--pill { border-radius: 999px; }
+.hit--pill:hover, .hit--pill:focus-visible { background: none; box-shadow: 0 0 0 1px rgba(246, 182, 58, .7), 0 0 calc(20 * var(--s)) rgba(246, 182, 58, .35); }
+.podava { border-radius: 50%; object-fit: cover; box-shadow: 0 0 0 calc(2 * var(--s)) rgba(0, 0, 0, .25); }
+.podava:not([src]) { visibility: hidden; }
+.lrows .lr { position: absolute; left: 0; right: 0; height: calc(34 * var(--s)); display: block; color: #c9c9cf; font-size: calc(14 * var(--s)); }
+.lrows .lr > * { position: absolute; top: 50%; transform: translateY(-50%); white-space: nowrap; }
+.lrows .lr img { left: calc(20 * var(--s)); width: calc(34 * var(--s)); height: calc(34 * var(--s)); border-radius: 50%; }
+.lrows .lr .n { left: calc(68 * var(--s)); color: var(--ink); }
+.lrows .lr .t, .lrows .lr .r { color: var(--ink); font-weight: 600; font-size: calc(15 * var(--s)); }
+.lrows .lr .t { left: calc(230 * var(--s)); }
+.lrows .lr .p { left: calc(366 * var(--s)); }
+.lrows .lr .r { left: calc(494 * var(--s)); }
+.lrows .lr--none { color: #75757d; }
+.follow { font-size: calc(14 * var(--s)); }

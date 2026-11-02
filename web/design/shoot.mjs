@@ -9,7 +9,7 @@ import { join } from 'node:path'
 const W = Number(process.argv[2] ?? 1280)
 const OUT = join(import.meta.dirname, '_shots')
 mkdirSync(OUT, { recursive: true })
-const FRAMES = { 4: '#top', 1: '#how', 2: '#map', 3: '#road', 5: '#vouch' }
+const FRAMES = { 4: '#top', 1: '#how', 2: '#map', 3: '#road', 5: '#vouch', lend: '#lend', believers: '#believers', join: '#join', footer: 'footer.frame' }
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms))
 const port = 9400 + Math.floor(Math.random() * 500)
 const chrome = spawn('C:/Program Files/Google/Chrome/Application/chrome.exe', [

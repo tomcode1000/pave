@@ -1,5 +1,5 @@
 import { mkdir, writeFile, copyFile, readFile, readdir } from 'node:fs/promises'
-import { existsSync } from 'node:fs'
+import { existsSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { build } from 'esbuild'
 
@@ -14,7 +14,12 @@ const OUT = join(HERE, 'dist')
 const ROOT = join(HERE, '..')
 
 await mkdir(join(OUT, 'deployments'), { recursive: true })
-for (const f of ['index.html', 'style.css', 'favicon.svg']) await copyFile(join(HERE, f), join(OUT, f))
+for (const f of ['style.css', 'app.css', 'app-pages.css', 'favicon.svg']) await copyFile(join(HERE, f), join(OUT, f))
+// The page, with its parts (<!--#include file.html-->) put in place.
+let page = await readFile(join(HERE, 'index.html'), 'utf8')
+const INCLUDE = /<!--#include ([\w.-]+)-->/g
+while (INCLUDE.test(page)) page = page.replace(INCLUDE, (_, f) => readFileSync(join(HERE, f), 'utf8'))
+await writeFile(join(OUT, 'index.html'), page)
 // The pictures cut from the Figma frames (design/cut.py) and the typeface.
 for (const dir of ['assets', 'fonts']) {
   await mkdir(join(OUT, dir), { recursive: true })

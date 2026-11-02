@@ -18,6 +18,7 @@ Patches, in design pixels:
   disc  - circles painted out (the $WIF coin, which the page floats on its own)
 
 A cutout is cut from the original with its circle as the only opaque part (PNG).
+A keyed piece is a small icon on a dark card, cut with the dark keyed out (PNG), so it sits on any card.
 """
 import os
 import cv2
@@ -51,6 +52,7 @@ DESIGNS = {
         whole=[(546, 103, 734, 149)],
         flat=[(1016, 292, 1146, 316), (1015, 318, 1110, 353), (972, 386, 1068, 412), (1116, 384, 1228, 413),
               (972, 440, 1058, 462), (1136, 431, 1228, 468), (930, 489, 1032, 512), (928, 514, 1230, 533), (176, 606, 250, 652), (416, 606, 470, 652), (660, 606, 748, 652), (910, 606, 975, 652), (1130, 606, 1226, 652)],
+        cutouts={'ava-0': (968, 317, 27)},
         pieces={'map': FRAME, 'map-art': (0, 246, 905, 580),
                 'profile': (905, 258, 1250, 558), 'legend': (38, 578, 1245, 688)},
     ),
@@ -72,6 +74,44 @@ DESIGNS = {
         pieces={'vouch': FRAME, 'hands': (760, 86, 1280, 352), 'vstep-1': (55, 355, 316, 590), 'vstep-2': (368, 355, 606, 590),
                 'vstep-3': (656, 355, 893, 590), 'rewards': (927, 351, 1233, 590)},
     ),
+    # ---- the app frames: their pictures; the cards and text are the page's own
+    'app-connect': dict(
+        pieces={'art-connect': (900, 86, 1280, 246), 'art-wallet': (170, 320, 600, 638)},
+        keyed={'w-metamask': (714, 396, 764, 446), 'w-phantom': (829, 396, 877, 444), 'w-okx': (944, 398, 988, 442),
+               'w-coinbase': (1054, 395, 1102, 443), 'w-more': (1162, 400, 1210, 440)},
+    ),
+    'app-road': dict(
+        text=[((540, 232, 662, 282), 40)],
+        pieces={'art-road': (540, 86, 1280, 335)},
+        keyed={'ic-coins': (204, 375, 267, 440)},
+    ),
+    # ---- the landing frames after the vouch section: words that never change stay in the picture; live ones are painted out
+    'lend': dict(text=[((90, 548, 935, 574), 70)], pieces={'l-lend': FRAME}),
+    'believers': dict(text=[((735, 270, 832, 303), 70), ((905, 246, 1020, 283), 70), ((1090, 278, 1188, 309), 70),
+                            ((800, 425, 1180, 452), 60), ((800, 523, 1180, 546), 60)],
+                      whole=[(140, 408, 740, 582)], pieces={'l-believers': FRAME}),
+    'join': dict(pieces={'l-join': FRAME}),
+    'footer': dict(text=[((228, 158, 820, 180), 60), ((1005, 630, 1180, 652), 60)],
+                   whole=[(788, 360, 962, 465), (993, 420, 1222, 472)], pieces={'l-footer': (0, 0, 1280, 720)}),
+    # the app's footer (the frame without its header); the test-tools card is its own picture, shown on test networks only
+    'app-footer': dict(text=[((360, 390, 425, 408), 60), ((30, 660, 300, 686), 60)], whole=[(1006, 658, 1252, 688), (905, 300, 1250, 616)],
+                       pieces={'app-footer': (0, 95, 1280, 720)}, rawpieces={'tools-card': (905, 300, 1250, 616)}),
+    # the share cards: whole frames; the back-my-road card's road, minimum, link and QR are drawn live
+    'share-vouch': dict(text=[((176, 438, 340, 478), 60), ((468, 410, 650, 478), 60), ((118, 558, 525, 588), 60)],
+                        whole=[(1020, 300, 1214, 490)], pieces={'share-vouch': (0, 0, 1280, 720)}),
+    'share-highway': dict(pieces={'share-highway': (0, 0, 1280, 720)}),
+    # the levels page: the whole frame (its words are fixed and match the contract); the header is the app's own
+    'levels': dict(whole=[(30, 22, 128, 100), (184, 20, 366, 72), (1064, 18, 1256, 74)], pieces={'levels': (0, 0, 1280, 720)}),
+    # the portraits a wallet is shown with (never the mockups' ape or frog)
+    'app-vouch': dict(cutouts={'ava-1': (740, 348, 25)}, text=[((620, 180, 660, 205), 40)],
+                      pieces={'art-vouch': (640, 86, 1280, 235)}, keyed={'art-gift': (1090, 425, 1252, 545)}),
+    'app-lend': dict(text=[((600, 184, 662, 206), 40)], pieces={'art-lend': (620, 86, 1280, 240)}),
+    'app-activity': dict(whole=[(1062, 18, 1258, 78)], pieces={'art-swoosh': (640, 0, 1280, 220)}),
+    'app-profile': dict(cutouts={'ava-2': (281, 308, 44)}),
+    'app-believers': dict(cutouts={'ava-3': (645, 312, 25), 'ava-4': (987, 312, 24)}, pieces={'art-believers': (770, 86, 1280, 215)},
+                          keyed={'medal-1': (222, 291, 271, 336), 'medal-2': (562, 291, 611, 335), 'medal-3': (905, 292, 953, 336)}),
+    'app-borrow': dict(pieces={'art-borrow': (700, 86, 1280, 250)}, keyed={'ic-usdg': (245, 310, 294, 359)}),
+    'app-repay': dict(text=[((640, 150, 662, 212), 40)], pieces={'art-repay': (640, 86, 1280, 265)}),
 }
 
 
@@ -111,6 +151,18 @@ def cutout(im, s, name, circle):
     cv2.imwrite(os.path.join(OUT, name + '.png'), rgba)
 
 
+def keyed(im, s, name, box):
+    x0, y0, x1, y1 = (int(round(v * s)) for v in box)
+    reg = im[y0:y1, x0:x1].astype(np.float32)
+    edge = np.concatenate([reg[0], reg[-1], reg[:, 0], reg[:, -1]])
+    bg = np.median(edge, axis=0)                      # the card behind the icon
+    v = np.abs(reg - bg).max(axis=2)
+    a = np.clip((v - 22) / 60, 0, 1) ** .85
+    rgb = (reg - bg * (1 - a[..., None])) / np.maximum(a[..., None], 1e-3)   # undo the blend
+    out = np.dstack([np.clip(rgb, 0, 255), a * 255]).astype(np.uint8)
+    cv2.imwrite(os.path.join(OUT, name + '.png'), out)
+
+
 def save(im, s, name, box):
     x0, y0, x1, y1 = (int(round(v * s)) for v in box)
     cv2.imwrite(os.path.join(OUT, name + '.jpg'), im[y0:y1, x0:x1], [cv2.IMWRITE_JPEG_QUALITY, 88 if s > 1 else 92])
@@ -122,9 +174,13 @@ for src, d in DESIGNS.items():
     big = os.path.join(SRC2X, src + '.png')
     s = 2 if os.path.exists(big) else 1
     raw = cv2.imread(big if s > 1 else os.path.join(SRC, src + '.jpg'))
+    for name, box in d.get('rawpieces', {}).items():
+        save(raw, s, name, box); n += 1
+    for name, box in d.get('keyed', {}).items():
+        keyed(raw, s, name, box); n += 1
     for name, circle in d.get('cutouts', {}).items():
         cutout(raw, s, name, circle); n += 1
     im = clean(raw.copy(), s, d.get('text', ()), d.get('whole', ()), d.get('flat', ()), d.get('disc', ()))
-    for name, box in d['pieces'].items():
+    for name, box in d.get('pieces', {}).items():
         save(im, s, name, box); n += 1
 print(f'cut {n} pictures into assets/')

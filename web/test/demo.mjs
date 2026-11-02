@@ -5,6 +5,7 @@ import { spawn } from 'node:child_process'
 import { mkdtempSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
+import { privateKeyToAccount } from 'viem/accounts'
 
 const APP = 'http://127.0.0.1:7930/?net=local'
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms))
@@ -25,12 +26,15 @@ const send = (method, params = {}) => new Promise((r) => { const id = ++n; pendi
 const evaluate = async (e) => (await send('Runtime.evaluate', { expression: e, returnByValue: true, awaitPromise: true })).result?.result?.value
 const check = (c, what) => { if (!c) throw new Error('check failed: ' + what); console.log('  ✓ ' + what) }
 async function click(act) {
-  await evaluate(`document.querySelector('[data-toast]').hidden = true; document.querySelector('[data-act="${act}"]').click()`)
+  await evaluate(`(() => { document.querySelector('[data-toast]').hidden = true; const m = document.querySelector('[data-txm]'); m.hidden = true; m.dataset.state = ''; [...document.querySelectorAll('[data-act="${act}"]')].find((x) => x.offsetParent || x.closest('[data-tools]')).click() })()`)
   for (let i = 0; i < 100; i++) {
     await sleep(200)
-    const t = await evaluate(`(() => { const t = document.querySelector('[data-toast]'); return t.hidden ? '' : t.className + '|' + t.textContent })()`)
+    const t = await evaluate(`(() => { const m = document.querySelector('[data-txm]'), t = document.querySelector('[data-toast]')
+      if (!m.hidden && m.dataset.state) return m.dataset.state + '|' + document.querySelector('[data-txm-rows]').textContent
+      return t.hidden ? '' : t.className + '|' + t.textContent })()`)
+    if (t.startsWith('ok|')) { console.log(`  ✓ ${act}: Transaction Successful`); await evaluate(`document.querySelector('[data-txm-go="continue"]').click()`); await sleep(400); return }
     if (t.includes('toast--ok')) { console.log(`  ✓ ${act}: ${t.split('|')[1]}`); await sleep(300); return }
-    if (t.includes('toast--err')) throw new Error(`${act}: ${t.split('|')[1]}`)
+    if (t.startsWith('bad|') || t.includes('toast--err')) throw new Error(`${act}: ${t.split('|')[1]}`)
   }
   throw new Error(act + ': no result')
 }
@@ -41,8 +45,10 @@ try {
   await send('Emulation.setEmulatedMedia', { features: [{ name: 'prefers-reduced-motion', value: 'reduce' }] }); await send('Runtime.enable')
   await send('Emulation.setDeviceMetricsOverride', { width: 1440, height: 1200, deviceScaleFactor: 1, mobile: false })
   await send('Page.navigate', { url: APP })
-  for (let i = 0; i < 60 && (await evaluate(`document.querySelector('[data-k="pool"]').textContent`)) === '—'; i++) await sleep(250)
+  for (let i = 0; i < 60 && (await evaluate(`document.querySelector('[data-L="total"]').textContent`)) === '—'; i++) await sleep(250)
   check((await evaluate(`document.querySelector('[data-connect]').textContent`)) === 'Use demo wallet', 'with no wallet app, the button offers a demo wallet')
+  await evaluate(`location.hash = '#/connect'`)
+  await sleep(500)
   await click('connect')
   const a = await evaluate(`document.querySelector('[data-connect]').textContent`)
   check(a.startsWith('0x'), `person A is connected (${a})`)
@@ -50,11 +56,11 @@ try {
   await click('demo-next')
   const b = await evaluate(`document.querySelector('[data-connect]').textContent`)
   check(b.startsWith('0x') && b !== a, `switched to person B (${b})`)
-  const bFull = await evaluate(`(() => { const t = document.querySelector('[data-act="demo-next"]').textContent; return t })()`)
-  check(bFull.startsWith('Person B'), `the switcher says ${bFull}`)
   // A vouches for B
-  const bAddr = await evaluate(`new URL(document.querySelector('.share code').textContent).searchParams.get('for')`)
+  const bAddr = privateKeyToAccount(await evaluate(`localStorage.getItem('pave-demo-1')`)).address
   for (let i = 0; i < 3; i++) await click('demo-next') // back round to A
+  await evaluate(`location.hash = '#/vouch'`)
+  await sleep(500)
   await evaluate(`(() => { const s = (k, v) => { const i = document.querySelector('[data-in="' + k + '"]'); i.value = v; i.dispatchEvent(new Event('input', { bubbles: true })) }; s('vouch-for', '${bAddr}'); s('vouch-amt', '50000') })()`)
   await sleep(300)
   await click('vouch')

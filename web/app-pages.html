@@ -1,0 +1,240 @@
+      <!-- ============================================================ vouch -->
+      <section class="pg" data-pg="vouch" hidden>
+        <img class="a art" src="assets/art-vouch.jpg" alt="" style="--x: 640; --y: 86; --w: 640; --h: 149">
+        <h1 class="tx hd" style="--x: 199; --t: 123; --f: 66">Vouch</h1>
+        <p class="tx lede" style="--x: 200; --t: 186; --f: 17">Back someone’s road. Earn rewards while you help.</p>
+        <div class="a acard" style="--x: 188; --y: 233; --w: 480; --h: 371">
+          <svg class="a" style="--x: 25; --y: 22; --w: 37; --h: 37" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-shield-ok"/></svg>
+          <h2 class="tx title" style="--x: 81; --t: 25; --f: 18">Vouch for Someone</h2>
+          <p class="tx desc" style="--x: 81; --t: 50; --f: 12.5">Lock $WIF to support a friend’s journey.</p>
+          <p class="tx label strong" style="--x: 21; --t: 90; --f: 14">Wallet Address</p>
+          <label class="a field2" style="--x: 21; --y: 110; --w: 440; --h: 40">
+            <input data-in="vouch-for" placeholder="Enter wallet address" spellcheck="false" autocomplete="off" aria-label="Wallet address of the person you vouch for">
+            <button type="button" class="field2__btn" data-act="paste-for" title="Paste from clipboard" aria-label="Paste"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 4H5v3M16 4h3v3M8 20H5v-3M16 20h3v-3M8 12h8" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg></button>
+          </label>
+          <p class="tx desc" style="--x: 21; --t: 155; --f: 12" data-vc="about"></p>
+          <p class="tx label strong" style="--x: 21; --t: 172; --f: 14">Amount of $WIF</p>
+          <img class="a ava ava--mini" data-me-ava style="--x: 317; --y: 168; --w: 23; --h: 23" alt="">
+          <p class="tx desc" style="--x: 346; --t: 174; --f: 12.5" data-vc="bal">Balance: —</p>
+          <div class="a vchips" style="--x: 38; --y: 195; --w: 238; --h: 26" data-vchips>
+            <button class="vchip" data-act="vouch-chip" data-v="10000">10k</button>
+            <button class="vchip" data-act="vouch-chip" data-v="50000">50k</button>
+            <button class="vchip" data-act="vouch-chip" data-v="100000">100k</button>
+            <button class="vchip" data-act="vouch-chip" data-v="">Custom</button>
+          </div>
+          <label class="a field2 field2--big" style="--x: 21; --y: 230; --w: 440; --h: 49">
+            <input data-in="vouch-amt" inputmode="decimal" placeholder="0" aria-label="$WIF to lock">
+            <span class="field2__unit">$WIF</span>
+          </label>
+          <button class="a btn-gold" style="--x: 21; --y: 297; --w: 440; --h: 51; font-size: calc(16 * var(--s))" data-act="vouch">Confirm Vouch<svg class="arr" viewBox="0 0 16 16" aria-hidden="true"><use href="#i-arrow"/></svg></button>
+        </div>
+        <div class="a acard" style="--x: 690; --y: 233; --w: 566; --h: 179">
+          <svg class="a" style="--x: 23; --y: 22; --w: 32; --h: 26" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-people"/></svg>
+          <h2 class="tx title" style="--x: 64; --t: 27; --f: 18">Your Active Vouches</h2>
+          <button class="a linkbtn" style="--x: 462; --y: 22; --w: 82; --h: 26" data-act="my-vouches">View All<svg viewBox="0 0 16 16" aria-hidden="true"><use href="#i-arrow"/></svg></button>
+          <i class="a hrule" style="--x: 23; --y: 67; --w: 520; --h: 1"></i>
+          <div class="a vrow" style="--x: 23; --y: 84; --w: 520; --h: 56" data-vrow></div>
+        </div>
+        <div class="a acard" style="--x: 690; --y: 433; --w: 566; --h: 171">
+          <svg class="a" style="--x: 27; --y: 25; --w: 26; --h: 26" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-gift"/></svg>
+          <h2 class="tx title" style="--x: 64; --t: 34; --f: 18">Your Rewards</h2>
+          <img class="a" src="assets/art-gift.png" alt="" style="--x: 412; --y: -6; --w: 142; --h: 105">
+          <p class="tx big" style="--x: 30; --t: 85; --f: 24" data-vc="earned">$0.00</p><p class="tx desc" style="--x: 30; --t: 118; --f: 13">Total Earned</p>
+          <i class="a vrule" style="--x: 170; --y: 80; --w: 1; --h: 56"></i>
+          <p class="tx big" style="--x: 191; --t: 85; --f: 24" data-vc="claim">$0.00</p><p class="tx desc" style="--x: 191; --t: 118; --f: 13">Claimable</p>
+          <button class="a btn-gold" style="--x: 350; --y: 119; --w: 195; --h: 51; font-size: calc(14.5 * var(--s))" data-act="claim-rewards">Claim Rewards<svg class="arr" viewBox="0 0 16 16" aria-hidden="true"><use href="#i-arrow"/></svg></button>
+        </div>
+        <div class="a abar abar--gold" style="--x: 190; --y: 622; --w: 1066; --h: 48">
+          <svg class="a" style="--x: 24; --y: 12; --w: 24; --h: 24" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9.2" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M12 7.5v5.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><circle cx="12" cy="16.3" r="1.2" fill="currentColor"/></svg>
+          <p class="tx label" style="--x: 60; --t: 19; --f: 13"><b class="gold">Note:</b> If the person you vouch for defaults, up to twice their debt in $WIF is cut from the stones behind them.</p>
+        </div>
+      </section>
+
+      <!-- ============================================================ lend -->
+      <section class="pg" data-pg="lend" hidden>
+        <img class="a art" src="assets/art-lend.jpg" alt="" style="--x: 620; --y: 86; --w: 660; --h: 154">
+        <h1 class="tx hd" style="--x: 207; --t: 124; --f: 66">Lend <b class="gold">USDG</b></h1>
+        <p class="tx lede" style="--x: 208; --t: 189; --f: 17">Put your funds to work. Earn interest from borrowers.</p>
+        <div class="a acard acard--warm" style="--x: 188; --y: 237; --w: 449; --h: 336">
+          <img class="a" src="assets/ic-coins.png" alt="" style="--x: 25; --y: 20; --w: 42; --h: 42">
+          <h2 class="tx title" style="--x: 90; --t: 25; --f: 18">Deposit USDG</h2>
+          <p class="tx desc" style="--x: 90; --t: 50; --f: 12.5">Supply USDG to the lending pool.</p>
+          <p class="tx label" style="--x: 27; --t: 96; --f: 15">Available Balance</p>
+          <p class="tx big" style="--x: 27; --t: 120; --f: 22" data-ln="bal">$0.00</p>
+          <i class="a vrule" style="--x: 252; --y: 93; --w: 1; --h: 60"></i>
+          <img class="a" src="assets/ic-usdg.png" alt="" style="--x: 326; --y: 103; --w: 35; --h: 35">
+          <p class="tx label strong" style="--x: 369; --t: 114; --f: 14">USDG</p>
+          <label class="a field2" style="--x: 25; --y: 163; --w: 398; --h: 43">
+            <input data-in="lend-amt" inputmode="decimal" placeholder="Enter amount" aria-label="USDG to deposit">
+            <span class="field2__unit">USDG</span>
+          </label>
+          <div class="a vchips vchips--wide" style="--x: 40; --y: 219; --w: 377; --h: 31">
+            <button class="vchip" data-act="lend-pct" data-v="25">25%</button><button class="vchip" data-act="lend-pct" data-v="50">50%</button>
+            <button class="vchip" data-act="lend-pct" data-v="75">75%</button><button class="vchip" data-act="lend-pct" data-v="100">Max</button>
+          </div>
+          <button class="a btn-gold" style="--x: 25; --y: 267; --w: 398; --h: 48; font-size: calc(16 * var(--s))" data-act="deposit">Deposit<svg class="arr" viewBox="0 0 16 16" aria-hidden="true"><use href="#i-arrow"/></svg></button>
+        </div>
+        <div class="a acard" style="--x: 660; --y: 266; --w: 596; --h: 130">
+          <svg class="a" style="--x: 28; --y: 20; --w: 24; --h: 24" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-chart"/></svg>
+          <h2 class="tx title" style="--x: 79; --t: 24; --f: 17">Your Lending Position</h2>
+          <p class="tx big" style="--x: 33; --t: 79; --f: 22" data-ln="dep">$0.00</p><p class="tx desc" style="--x: 33; --t: 111; --f: 13">Deposited</p>
+          <i class="a vrule" style="--x: 178; --y: 72; --w: 1; --h: 50"></i>
+          <p class="tx big" style="--x: 206; --t: 79; --f: 22" data-ln="share">0%</p><p class="tx desc" style="--x: 206; --t: 111; --f: 13">Share of Pool</p>
+          <i class="a vrule" style="--x: 355; --y: 72; --w: 1; --h: 50"></i>
+          <p class="tx big" style="--x: 380; --t: 79; --f: 22; color: #4ade80" data-ln="int">$0.00</p><p class="tx desc" style="--x: 380; --t: 111; --f: 13">Interest Earned</p>
+        </div>
+        <div class="a acard" style="--x: 660; --y: 414; --w: 596; --h: 159">
+          <svg class="a" style="--x: 28; --y: 21; --w: 26; --h: 26" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-coins"/></svg>
+          <h2 class="tx title" style="--x: 79; --t: 24; --f: 17">Pool Overview</h2>
+          <p class="tx big" style="--x: 33; --t: 81; --f: 22" data-ln="total">$0</p><p class="tx desc" style="--x: 33; --t: 113; --f: 13">Total Pool Liquidity</p>
+          <i class="a vrule" style="--x: 190; --y: 74; --w: 1; --h: 52"></i>
+          <p class="tx big" style="--x: 219; --t: 81; --f: 22" data-ln="idle">$0</p><p class="tx desc" style="--x: 219; --t: 113; --f: 13">Available Liquidity</p>
+          <i class="a vrule" style="--x: 370; --y: 74; --w: 1; --h: 52"></i>
+          <p class="tx big" style="--x: 397; --t: 81; --f: 22" data-ln="out">$0</p><p class="tx desc" style="--x: 397; --t: 113; --f: 13">Currently Lent Out</p>
+        </div>
+        <div class="a acard acard--warm" style="--x: 188; --y: 590; --w: 1068; --h: 86">
+          <svg class="a" style="--x: 25; --y: 24; --w: 37; --h: 37" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M7.5 10.2a4.8 4.8 0 0 1 8.4-2l1 1M16.5 13.8a4.8 4.8 0 0 1-8.4 2l-1-1M17 6.6v2.6h-2.6M7 17.4v-2.6h2.6" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <h2 class="tx title" style="--x: 85; --t: 22; --f: 18">Withdraw USDG</h2>
+          <p class="tx desc" style="--x: 85; --t: 49; --f: 12.5" data-ln="wsub">Take out what isn’t lent out, anytime.</p>
+          <p class="tx desc" style="--x: 623; --t: 18; --f: 13">Available to Withdraw</p>
+          <p class="tx big" style="--x: 623; --t: 40; --f: 22" data-ln="avail">$0.00</p>
+          <i class="a vrule" style="--x: 834; --y: 20; --w: 1; --h: 46"></i>
+          <button class="a btn-line gold-line gold-text" style="--x: 901; --y: 22; --w: 141; --h: 43; font-size: calc(14.5 * var(--s))" data-act="withdraw">Withdraw<svg class="arr" viewBox="0 0 16 16" aria-hidden="true"><use href="#i-arrow"/></svg></button>
+        </div>
+      </section>
+
+      <!-- ============================================================ believers -->
+      <section class="pg" data-pg="believers" hidden>
+        <img class="a art" src="assets/art-believers.jpg" alt="" style="--x: 770; --y: 86; --w: 510; --h: 129">
+        <p class="tx eyebrow-t" style="--x: 201; --t: 100; --f: 15">The Pave Community</p>
+        <h1 class="tx hd" style="--x: 202; --t: 123; --f: 47">The people who <b class="gold">believe.</b></h1>
+        <p class="tx lede" style="--x: 201; --t: 174; --f: 17">Top supporters. Stronger community. A more trusted road.</p>
+        <div class="a acard" style="--x: 186; --y: 218; --w: 1066; --h: 152">
+          <svg class="a" style="--x: 24; --y: 19; --w: 24; --h: 24" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-star"/></svg>
+          <h2 class="tx title" style="--x: 62; --t: 23; --f: 17">Top Believers</h2>
+          <button class="a linkbtn" style="--x: 935; --y: 17; --w: 108; --h: 26" data-act="hall">Hall of Fame<svg viewBox="0 0 16 16" aria-hidden="true"><use href="#i-arrow"/></svg></button>
+          <div class="a podium" style="--x: 21; --y: 53; --w: 1024; --h: 81" data-top3></div>
+        </div>
+        <div class="a acard" style="--x: 186; --y: 384; --w: 820; --h: 296">
+          <svg class="a" style="--x: 25; --y: 20; --w: 22; --h: 22" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-chart"/></svg>
+          <h2 class="tx title" style="--x: 62; --t: 22; --f: 17">Community Leaderboard</h2>
+          <div class="a sortpills" style="--x: 474; --y: 16; --w: 326; --h: 27">
+            <button class="sortpill" data-act="sort" data-v="backed">Most $WIF Backed</button><button class="sortpill" data-act="sort" data-v="repaid">Most Successful Repayments</button>
+          </div>
+          <div class="a lboard" style="--x: 21; --y: 56; --w: 778; --h: 232" data-lboard></div>
+        </div>
+        <div class="a acard" style="--x: 1023; --y: 384; --w: 229; --h: 296">
+          <svg class="a" style="--x: 94; --y: 21; --w: 42; --h: 42" viewBox="0 0 24 24" aria-hidden="true"><path d="m12 2.8 2.8 5.8 6.4.8-4.7 4.4 1.2 6.3L12 17l-5.7 3.1 1.2-6.3-4.7-4.4 6.4-.8z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>
+          <h2 class="tx title c" style="--cx: 114; --t: 60; --f: 18">Be a Believer</h2>
+          <p class="tx desc c" style="--cx: 114; --t: 90; --f: 12.5; --lh: 16">Support others, build <br>credibility, and climb the <br>leaderboard.</p>
+          <a class="a btn-gold" href="#/vouch" style="--x: 29; --y: 144; --w: 171; --h: 35; font-size: calc(14 * var(--s))">Start Vouching<svg class="arr" viewBox="0 0 16 16" aria-hidden="true"><use href="#i-arrow"/></svg></a>
+          <i class="a hrule" style="--x: 18; --y: 200; --w: 193; --h: 1"></i>
+          <svg class="a" style="--x: 24; --y: 231; --w: 36; --h: 28" viewBox="0 0 40 32" aria-hidden="true"><use href="#i-people"/></svg>
+          <p class="tx tiny c" style="--cx: 137; --t: 217; --f: 11">Community Impact</p>
+          <p class="tx big c" style="--cx: 137; --t: 234; --f: 21" data-bl="impact">0</p>
+          <p class="tx tiny c" style="--cx: 137; --t: 262; --f: 11">$WIF Vouched Together</p>
+        </div>
+      </section>
+
+      <!-- ============================================================ activity -->
+      <section class="pg" data-pg="activity" hidden>
+        <img class="a art art--swoosh" src="assets/art-swoosh.jpg" alt="" style="--x: 640; --y: 0; --w: 640; --h: 260">
+        <p class="tx eyebrow-t" style="--x: 197; --t: 103; --f: 15">Activity History</p>
+        <h1 class="tx hd" style="--x: 197; --t: 127; --f: 52">Activity <b class="gold">History.</b></h1>
+        <p class="tx lede" style="--x: 197; --t: 183; --f: 17">Your complete PAVE transaction record.</p>
+        <div class="a filters" style="--x: 188; --y: 225; --w: 745; --h: 41" data-afilters>
+          <button class="filter" data-act="afilter" data-v="all"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z" fill="currentColor"/></svg>All Activities</button>
+          <button class="filter" data-act="afilter" data-v="borrow"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11m-5-5 5 5 5-5M5 20h14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>Borrowing</button>
+          <button class="filter" data-act="afilter" data-v="repay"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 12a7.5 7.5 0 1 0 2.2-5.3M4.5 4.5v3.7h3.7" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>Repayments</button>
+          <button class="filter" data-act="afilter" data-v="vouch"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-shield-ok"/></svg>Vouches</button>
+          <button class="filter" data-act="afilter" data-v="lend"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-coins"/></svg>Lending</button>
+        </div>
+        <label class="a rangesel" style="--x: 1104; --y: 225; --w: 151; --h: 41">
+          <select data-in="arange" aria-label="Time range"><option value="7">Last 7 Days</option><option value="30" selected>Last 30 Days</option><option value="0">All Time</option></select>
+        </label>
+        <div class="a acard" style="--x: 188; --y: 284; --w: 744; --h: 397">
+          <div class="a athead" style="--x: 22; --y: 22; --w: 700; --h: 20"><span>Type</span><span>Date &amp; Time</span><span>Amount</span><span>Status</span><span>Transaction Hash</span></div>
+          <div class="a arows" style="--x: 7; --y: 54; --w: 730; --h: 270" data-arows></div>
+          <p class="tx desc" style="--x: 22; --t: 357; --f: 13" data-ac="showing"></p>
+          <div class="a pager" style="--x: 520; --y: 343; --w: 202; --h: 28" data-pager></div>
+        </div>
+        <div class="a acard" style="--x: 951; --y: 284; --w: 304; --h: 397" data-adetail></div>
+      </section>
+
+      <!-- ============================================================ profile -->
+      <section class="pg" data-pg="profile" hidden>
+        <img class="a art art--swoosh" src="assets/art-swoosh.jpg" alt="" style="--x: 640; --y: 0; --w: 640; --h: 260">
+        <p class="tx eyebrow-t" style="--x: 201; --t: 90; --f: 15">Your Profile</p>
+        <h1 class="tx hd" style="--x: 201; --t: 112; --f: 49">Profile &amp; <b class="gold">Settings</b></h1>
+        <p class="tx lede" style="--x: 201; --t: 165; --f: 17">Your wallet, your road and how Pave talks to it.</p>
+        <div class="a acard" style="--x: 194; --y: 200; --w: 452; --h: 251">
+          <svg class="a" style="--x: 25; --y: 19; --w: 24; --h: 24" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="7.5" r="4.2" fill="currentColor"/><path d="M4 21c0-4.6 3.6-7.6 8-7.6s8 3 8 7.6z" fill="currentColor"/></svg>
+          <h2 class="tx title" style="--x: 62; --t: 22; --f: 17">Profile Overview</h2>
+          <button class="a bigava" style="--x: 31; --y: 57; --w: 112; --h: 112" data-act="pick-ava" aria-label="Change your picture"><img data-me-ava alt=""><span class="bigava__pen"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m4 20 1-4.5L15.5 5 19 8.5 8.5 19zM13.5 7l3.5 3.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg></span></button>
+          <p class="tx big" style="--x: 177; --t: 79; --f: 20" data-pf="name">Your wallet</p>
+          <p class="tx label" style="--x: 177; --t: 107; --f: 14" data-pf="addr">—</p>
+          <button class="a copybtn" style="--x: 290; --y: 104; --w: 18; --h: 18" data-act="copy-me" aria-label="Copy address"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="8" y="8" width="12" height="12" rx="2" fill="none" stroke="currentColor" stroke-width="1.7"/><path d="M16 8V5.5A1.5 1.5 0 0 0 14.5 4h-9A1.5 1.5 0 0 0 4 5.5v9A1.5 1.5 0 0 0 5.5 16H8" fill="none" stroke="currentColor" stroke-width="1.7"/></svg></button>
+          <span class="a okpill" style="--x: 177; --y: 133; --w: 105; --h: 28"><i class="dotg" style="width: calc(9 * var(--s)); height: calc(9 * var(--s)); margin-right: calc(7 * var(--s))"></i>Connected</span>
+          <i class="a hrule" style="--x: 25; --y: 188; --w: 402; --h: 1"></i>
+          <i class="a dotg" style="--x: 35; --y: 211; --w: 12; --h: 12"></i>
+          <p class="tx desc" style="--x: 58; --t: 203; --f: 13">Network</p><p class="tx label strong" style="--x: 58; --t: 222; --f: 14" data-net-name>—</p>
+          <i class="a vrule" style="--x: 238; --y: 202; --w: 1; --h: 38"></i>
+          <svg class="a" style="--x: 255; --y: 205; --w: 22; --h: 22; color: #c9c9cf" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-clock"/></svg>
+          <p class="tx desc" style="--x: 292; --t: 203; --f: 13">Account Activity</p><p class="tx label strong" style="--x: 292; --t: 222; --f: 14" data-pf="last">—</p>
+        </div>
+        <div class="a acard" style="--x: 663; --y: 200; --w: 593; --h: 251">
+          <svg class="a" style="--x: 26; --y: 20; --w: 24; --h: 24" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-chart"/></svg>
+          <h2 class="tx title" style="--x: 64; --t: 22; --f: 17">Your PAVE Identity</h2>
+          <a class="a idstat" href="#/levels" style="--x: 14; --y: 62; --w: 130; --h: 100"><svg viewBox="0 0 68 36" aria-hidden="true"><use href="#i-mark"/></svg><small>Road Level</small><b data-pf="lv">—</b></a>
+          <i class="a vrule" style="--x: 150; --y: 70; --w: 1; --h: 86"></i>
+          <a class="a idstat" href="#/activity" data-act="afilter" data-v="borrow" style="--x: 158; --y: 62; --w: 140; --h: 100"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2.5 13.5 7 9l3 1.5 3.5-3 4 2 4-3.5M5 19l4-3 3 1.5 3.5-2.5L19 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg><small>Total Borrowed</small><b data-pf="borrowed">—</b></a>
+          <i class="a vrule" style="--x: 304; --y: 70; --w: 1; --h: 86"></i>
+          <button class="a idstat" data-act="supporters" style="--x: 310; --y: 62; --w: 150; --h: 100"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-shield-ok"/></svg><small>Total $WIF Backed</small><b data-pf="backed">—</b></button>
+          <i class="a vrule" style="--x: 466; --y: 70; --w: 1; --h: 86"></i>
+          <a class="a idstat" href="#/activity" data-act="afilter" data-v="repay" style="--x: 472; --y: 62; --w: 110; --h: 100"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-star"/></svg><small>Reputation</small><b data-pf="rep">—</b></a>
+          <span class="a bar-track" style="--x: 35; --y: 193; --w: 390; --h: 12"><i data-pf="bar" style="width: 0%"></i></span>
+          <p class="tx desc" style="--x: 458; --t: 193; --f: 13" data-pf="next">Next Level: —</p>
+        </div>
+        <div class="a acard" style="--x: 194; --y: 470; --w: 519; --h: 216">
+          <svg class="a" style="--x: 24; --y: 19; --w: 24; --h: 24" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 8.5a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7z" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="m10.3 2.8-.5 2.5-1.8.9-2.2-1.4-2.4 2.4 1.4 2.2-.9 1.8-2.5.5v3.4l2.5.5.9 1.8-1.4 2.2 2.4 2.4 2.2-1.4 1.8.9.5 2.5h3.4l.5-2.5 1.8-.9 2.2 1.4 2.4-2.4-1.4-2.2.9-1.8 2.5-.5v-3.4l-2.5-.5-.9-1.8 1.4-2.2-2.4-2.4-2.2 1.4-1.8-.9-.5-2.5z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>
+          <h2 class="tx title" style="--x: 56; --t: 20; --f: 17">Settings</h2>
+          <button class="a setrow" style="--x: 20; --y: 46; --w: 479; --h: 52" data-act="set-notify"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 16.5V11a6 6 0 1 1 12 0v5.5l1.5 2h-15zM10 20.5a2 2 0 0 0 4 0" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/></svg><span><b>Notification Preferences</b><small>Choose what Pave tells you about</small></span><svg class="chev" viewBox="0 0 16 16" aria-hidden="true"><use href="#i-chev"/></svg></button>
+          <button class="a setrow" style="--x: 20; --y: 101; --w: 479; --h: 52" data-act="set-approvals"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-shield-ok"/></svg><span><b>Security</b><small>Review and revoke token approvals</small></span><svg class="chev" viewBox="0 0 16 16" aria-hidden="true"><use href="#i-chev"/></svg></button>
+          <button class="a setrow" style="--x: 20; --y: 155; --w: 479; --h: 52" data-act="set-network"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-globe"/></svg><span><b>Network Preferences</b><small>Make sure your wallet is on the right chain</small></span><svg class="chev" viewBox="0 0 16 16" aria-hidden="true"><use href="#i-chev"/></svg></button>
+        </div>
+        <div class="a acard" style="--x: 731; --y: 470; --w: 525; --h: 216">
+          <svg class="a" style="--x: 25; --y: 19; --w: 22; --h: 24" viewBox="0 0 24 24" aria-hidden="true"><path d="M13.5 2 5 14h6.5L10 22l9-12.5h-6.5z" fill="currentColor"/></svg>
+          <h2 class="tx title" style="--x: 58; --t: 20; --f: 17">Account Actions</h2>
+          <a class="a actbtn" href="#/activity" style="--x: 29; --y: 48; --w: 470; --h: 42"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 12a7.5 7.5 0 1 0 2.2-5.3M4.5 4.5v3.7h3.7M12 8v4.5l3 1.8" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>View Transaction History<svg class="end" viewBox="0 0 16 16" aria-hidden="true"><use href="#i-arrow"/></svg></a>
+          <button class="a actbtn actbtn--red" style="--x: 29; --y: 101; --w: 470; --h: 41" data-act="disconnect"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 4h4.5A1.5 1.5 0 0 1 20 5.5v13a1.5 1.5 0 0 1-1.5 1.5H14M10 16l4-4-4-4M14 12H4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>Disconnect Wallet<svg class="end" viewBox="0 0 16 16" aria-hidden="true"><use href="#i-arrow"/></svg></button>
+          <a class="a actbtn actbtn--white" href="https://github.com/tomcode1000/pave#readme" target="_blank" rel="noopener" style="--x: 29; --y: 154; --w: 470; --h: 41"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 13v-1a8 8 0 0 1 16 0v1M4 13h3v6H5.5A1.5 1.5 0 0 1 4 17.5zM20 13h-3v6h1.5a1.5 1.5 0 0 0 1.5-1.5z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/></svg>Documentation &amp; Support<svg class="end" viewBox="0 0 16 16" aria-hidden="true"><use href="#i-arrow"/></svg></a>
+        </div>
+      </section>
+
+      <!-- ============================================================ notifications -->
+      <section class="pg" data-pg="notifications" hidden>
+        <img class="a art art--swoosh" src="assets/art-swoosh.jpg" alt="" style="--x: 640; --y: 0; --w: 640; --h: 260">
+        <svg class="a nbell" style="--x: 204; --y: 106; --w: 52; --h: 56" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 16.5V11a6 6 0 1 1 12 0v5.5l1.5 2h-15zM10 20.5a2 2 0 0 0 4 0" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/></svg>
+        <span class="a nbell__n" style="--x: 238; --y: 104; --w: 24; --h: 24" data-nt="count" hidden></span>
+        <h1 class="tx hd" style="--x: 291; --t: 113; --f: 50">Notif<b class="gold">ications</b></h1>
+        <p class="tx lede" style="--x: 291; --t: 167; --f: 15">Stay updated on your PAVE activity and important updates.</p>
+        <button class="a btn-line gold-line smallbtn" style="--x: 1088; --y: 131; --w: 162; --h: 41; font-size: calc(14 * var(--s))" data-act="read-all"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>Mark all as read</button>
+        <div class="a ntabs" style="--x: 197; --y: 213; --w: 675; --h: 49" data-ntabs>
+          <button class="ntab" data-act="nfilter" data-v="all"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z" fill="currentColor"/></svg>All<b data-nt="all"></b></button>
+          <button class="ntab" data-act="nfilter" data-v="loans"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-coins"/></svg>Loans</button>
+          <button class="ntab" data-act="nfilter" data-v="vouches"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-shield-ok"/></svg>Vouches</button>
+          <button class="ntab" data-act="nfilter" data-v="lending"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-coins"/></svg>Lending</button>
+          <button class="ntab" data-act="nfilter" data-v="rewards"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-gift"/></svg>Rewards</button>
+        </div>
+        <div class="a nlist" style="--x: 197; --y: 282; --w: 675; --h: 367" data-nlist></div>
+        <div class="a acard" style="--x: 902; --y: 214; --w: 353; --h: 472" data-ndetail></div>
+      </section>
+
+      <!-- ============================================================ the five levels (no sidebar: the frame's own header) -->
+      <section class="pg pg--bare" data-pg="levels" hidden style="--bg: url(assets/levels.jpg)">
+        <a class="a lvlcard" href="#/road" style="--x: 38; --y: 261; --w: 195; --h: 275" data-lv="0" aria-label="Level 0, dirt path: borrow up to $10"></a>
+        <a class="a lvlcard" href="#/road" style="--x: 291; --y: 261; --w: 194; --h: 275" data-lv="1" aria-label="Level 1, gravel: borrow up to $25"></a>
+        <a class="a lvlcard" href="#/road" style="--x: 543; --y: 261; --w: 194; --h: 275" data-lv="2" aria-label="Level 2, cobblestone: borrow up to $50"></a>
+        <a class="a lvlcard" href="#/road" style="--x: 795; --y: 261; --w: 194; --h: 275" data-lv="3" aria-label="Level 3, highway: borrow up to $100"></a>
+        <a class="a lvlcard lvlcard--x" href="#/road" style="--x: 1047; --y: 261; --w: 196; --h: 275" data-lv="x" aria-label="Defaulted: cracked road, limited access"></a>
+      </section>
