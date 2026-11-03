@@ -11,7 +11,7 @@ const OUT = join(import.meta.dirname, '_shots')
 mkdirSync(OUT, { recursive: true })
 // frame -> page
 const ALL = { 'app-connect': 'connect', 'app-road': 'road', 'app-borrow': 'borrow', 'app-repay': 'repay', 'app-lend': 'lend', 'app-vouch': 'vouch',
-  'app-believers': 'believers', 'app-activity': 'activity', 'app-profile': 'profile', 'app-notify': 'notifications', levels: 'levels' }
+  'app-believers': 'believers', pool: 'pool', 'app-activity': 'activity', 'app-profile': 'profile', 'app-notify': 'notifications', levels: 'levels' }
 const want = process.argv.slice(2).length ? process.argv.slice(2) : Object.keys(ALL)
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms))
 const port = 9400 + Math.floor(Math.random() * 500)

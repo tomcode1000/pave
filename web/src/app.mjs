@@ -610,7 +610,7 @@ function openVouch(addr) {
 // ------------------------------------------------------------------ the app: pages by the hash
 // #/<page> shows the app (sidebar, top bar, one page); anything else is the landing page.
 const VIEW = { page: null, after: null }
-const PAGES = ['connect', 'road', 'borrow', 'repay', 'lend', 'vouch', 'believers', 'activity', 'profile', 'notifications', 'levels', 'map']
+const PAGES = ['connect', 'road', 'borrow', 'repay', 'lend', 'pool', 'vouch', 'believers', 'activity', 'profile', 'notifications', 'levels', 'map']
 const NEEDS_WALLET = new Set(['road', 'borrow', 'repay', 'lend', 'vouch', 'activity', 'profile', 'notifications'])
 const NAV_OF = { borrow: 'road', repay: 'road', levels: 'road', activity: null, profile: null, notifications: null }
 
@@ -676,6 +676,7 @@ function renderApp() {
   const page = VIEW.page
   if (page === 'connect') markWallets()
   if (page === 'believers') renderBelievers()
+  if (page === 'pool') renderPool()
   if (!S.mine) return
   badge()
   if (page === 'road') renderRoad()
@@ -1046,6 +1047,38 @@ function renderLend() {
   $('[data-act="withdraw"]').classList.toggle('is-off', avail === 0n)
 }
 
+// ------------------------------------------------------------------ pool page (public)
+function renderPool() {
+  const p = S.pool, total = p.idle + p.outstanding
+  const lenderBps = 10_000n - BigInt(S.params.voucherShareBps ?? 3000n)
+  const feeOf = new Map()
+  let fees = 0n, burned = 0n
+  for (const e of S.events) {
+    if (e.eventName === 'Borrowed') feeOf.set(e.args.borrower.toLowerCase(), e.args.fee)
+    if (e.eventName === 'Repaid') fees += ((feeOf.get(e.args.borrower.toLowerCase()) ?? 0n) * lenderBps) / 10_000n
+    if (e.eventName === 'Defaulted') burned += e.args.wifBurned
+  }
+  const P = (k, v) => set(`[data-pl="${k}"]`, v)
+  P('total', usd(total)); P('idle', usd(p.idle)); P('out', usd(p.outstanding))
+  P('util', total ? (Number((p.outstanding * 10_000n) / total) / 100).toFixed(1) + '%' : '0%')
+  P('fees', usd(fees)); P('burned', wifWhole(burned))
+  const loans = S.openLoans ?? []
+  P('summary', loans.length ? `${loans.length} open · ${usd(loans.reduce((s, o) => s + o.owed, 0n))} owed` : '')
+  // the card is as tall as its rows
+  $('[data-pl="card"]').style.setProperty('--h', 88 + 45 * Math.max(1, Math.min(loans.length, 6)) + (loans.length > 6 ? 30 : 0) + 16)
+  const box = $('[data-pl="rows"]')
+  box.classList.toggle('arows--empty', !loans.length)
+  box.innerHTML = loans.length ? loans.slice(0, 6).map((o) => {
+    const t = now(), late = t > o.due, ended = t > o.graceEnd
+    const status = ended ? ['bad', 'Past grace'] : late ? ['warn', 'Overdue'] : ['', 'On time']
+    return `<div class="arow prow"><span class="ty"><img class="ava" src="${avaOf(o.addr)}" alt="" style="width: calc(28 * var(--s)); height: calc(28 * var(--s)); visibility: visible">${short(o.addr)}</span>
+      <span>${LEVELS[level(o.road.repaid)]}</span><span class="am">${usd(o.owed)}</span><span>${late ? 'was due ' + dateOf(o.due) : dur(o.due - t)}</span>
+      <span><span class="okpill ${status[0]}" style="position: static; display: inline-flex; padding: 0 calc(12 * var(--s)); height: calc(26 * var(--s)); gap: calc(6 * var(--s))"><i style="width: calc(8 * var(--s)); height: calc(8 * var(--s)); border-radius: 50%; background: currentColor"></i>${status[1]}</span></span>
+      <span class="end">${ended ? `<button class="vp" style="height: calc(28 * var(--s)); padding: 0 calc(14 * var(--s)); border-radius: 999px; border: 1px solid rgba(239, 68, 68, .6); background: none; color: var(--red); font-size: calc(12 * var(--s)); font-weight: 600; cursor: pointer" data-act="default" data-b="${o.addr}">End loan</button>` : ''}</span></div>`
+  }).join('') + (loans.length > 6 ? `<p class="note" style="padding: 0 calc(15 * var(--s))">and ${loans.length - 6} more, soonest due first</p>` : '')
+    : '<p>No loans are open right now. Every loan that goes out shows here until it is repaid or ended.</p>'
+}
+
 // ------------------------------------------------------------------ vouch page
 function myVouchList() {
   const me = S.me.toLowerCase()
@@ -1387,14 +1420,13 @@ function spy() {
 /// Open loans past their grace period, read straight from the contract.
 async function findOverdue() {
   const open = [...S.model.roads.values()].filter((r) => r.open)
-  const list = []
-  for (const r of open) {
+  const loans = (await Promise.all(open.map(async (r) => {
     const l = await read('loans', [r.addr])
-    if (l[0] === 0n) continue
-    const graceEnd = l[2] + BigInt(S.params.grace ?? 0n)
-    if (now() > graceEnd) list.push({ addr: r.addr, owed: l[0] + l[1], graceEnd })
-  }
-  S.overdue = list
+    return l[0] === 0n ? null : { addr: r.addr, road: r, owed: l[0] + l[1], due: l[2], graceEnd: l[2] + BigInt(S.params.grace ?? 0n) }
+  }))).filter(Boolean).sort((a, b) => (a.due < b.due ? -1 : 1))
+  S.openLoans = loans
+  S.overdue = loans.filter((o) => now() > o.graceEnd)
+  if (VIEW.page === 'pool') renderPool()
 }
 
 // ------------------------------------------------------------------ actions
@@ -1416,6 +1448,12 @@ const ACTIONS = {
     b.setAttribute('aria-expanded', String(!m.hidden))
   },
   disconnect: () => { hideMenu(); disconnect() },
+  rail: () => {
+    const on = !$('[data-stage]').classList.contains('rail')
+    $('[data-stage]').classList.toggle('rail', on)
+    store.set('pave-rail', on ? '1' : '')
+    $('[data-act="rail"]').setAttribute('aria-label', on ? 'Expand the sidebar' : 'Collapse the sidebar')
+  },
   'sheet-close': (b) => { closeSheet(); if (b.getAttribute('href')) location.hash = b.getAttribute('href') },
   'share-vouch': () => openCard('vouch'),
   'share-highway': () => openCard('highway'),
@@ -1518,7 +1556,7 @@ const ACTIONS = {
   },
   unvouch: (b) => act('Take back', () => send('Take back', 'unvouch', [b.dataset.b]), { amount: short(b.dataset.b), then: 'vouch' }).then(() => closeSheet()),
   'claim-rewards': () => act('Claim rewards', () => send('Claim rewards', 'claimRewards'), { amount: S.mine ? usd(S.mine.rewards) + ' USDG' : '', then: 'vouch' }),
-  default: (b) => act('End loan', () => send('End loan', 'markDefault', [b.dataset.b]), { amount: short(b.dataset.b), then: 'notifications' }),
+  default: (b) => act('End loan', () => send('End loan', 'markDefault', [b.dataset.b]), { amount: short(b.dataset.b), then: VIEW.page === 'pool' ? 'pool' : 'notifications' }),
   deposit: () => {
     const amt = toUnits(val('lend-amt')?.replace(/,/g, ''), 6)
     return act('Deposit', async () => {
@@ -1623,6 +1661,7 @@ async function boot() {
     }
   })
   addEventListener('hashchange', route)
+  if (store.get('pave-rail')) $('[data-stage]').classList.add('rail')
 
   const forAddr = new URLSearchParams(location.search).get('for')
   if (forAddr && isAddress(forAddr)) { S.vouchFor = getAddress(forAddr); if (!location.hash) location.hash = '#/vouch' }

@@ -216,3 +216,28 @@
 
 /* a window shorter than the page would cut the sidebar card in half: it is in the wallet menu ("Road Levels") instead */
 @media (min-aspect-ratio: 16/9) and (min-width: 861px) { .growcard { display: none; } }
+
+/* ------------------------------------------------------------------ the sidebar folds to an icon rail */
+.railbtn {
+  display: grid; place-items: center; padding: 0; border-radius: 50%; cursor: pointer; z-index: 4;
+  border: 1px solid rgba(246, 182, 58, .5); background: #111113; color: var(--gold);
+}
+.railbtn svg { width: 55%; height: 55%; transition: transform .25s ease; }
+.railbtn:hover { background: rgba(246, 182, 58, .12); }
+.side, .navi, .navi span, .side__mark, .side__word, .railbtn, .pg { transition: all .25s ease; }
+.app-stage.rail .side { width: calc(72 * var(--s)); }
+.app-stage.rail .railbtn { left: calc(58 * var(--s)); }
+.app-stage.rail .railbtn svg { transform: rotate(180deg); }
+.app-stage.rail .side > a:first-child { left: calc(10 * var(--s)); width: calc(52 * var(--s)); height: calc(28 * var(--s)); }
+.app-stage.rail .side__word { left: calc(14 * var(--s)); font-size: calc(14 * var(--s)); }
+.app-stage.rail .navi { left: calc(12 * var(--s)); width: calc(48 * var(--s)); padding-left: calc(11 * var(--s)); gap: 0; }
+.app-stage.rail .navi span { opacity: 0; width: 0; overflow: hidden; }
+.app-stage.rail .growcard { display: none; }
+/* the page moves into the room the sidebar gave up; its picture stays flush with the right edge */
+.app-stage.rail .pg { transform: translateX(calc(-44 * var(--s))); }
+.app-stage.rail .pg > .art { width: calc((var(--w) + 44) * var(--s)); }
+.app-stage.rail .pg--bare { transform: none; }
+.app-stage.rail.bare .railbtn { display: none; }
+.app-stage::before { transition: left .25s ease; }
+.app-stage.rail::before { left: calc(72 * var(--s)); }
+@media (max-width: 860px) { .railbtn { display: none; } }

@@ -84,6 +84,9 @@
 }
 .rangesel::after { content: ""; position: absolute; right: calc(18 * var(--s)); top: 50%; width: calc(7 * var(--s)); height: calc(7 * var(--s)); margin-top: calc(-5 * var(--s)); border: solid #ddd; border-width: 0 1.6px 1.6px 0; rotate: 45deg; pointer-events: none; }
 .rangesel option { background: #141416; }
+.pthead, .prow { grid-template-columns: calc(230 * var(--s)) calc(170 * var(--s)) calc(150 * var(--s)) calc(190 * var(--s)) calc(150 * var(--s)) 1fr !important; }
+.prow { cursor: default; }
+.prow .end { justify-self: end; }
 .athead { display: grid; grid-template-columns: calc(127 * var(--s)) calc(178 * var(--s)) calc(112 * var(--s)) calc(134 * var(--s)) 1fr; color: #9a9aa1; font-size: calc(14 * var(--s)); }
 .arows { display: grid; grid-template-rows: repeat(6, 1fr); }
 .arow { display: grid; grid-template-columns: calc(142 * var(--s)) calc(178 * var(--s)) calc(112 * var(--s)) calc(134 * var(--s)) 1fr calc(30 * var(--s)); align-items: center; padding: 0 calc(15 * var(--s)); border: 1px solid transparent; border-bottom-color: rgba(255, 255, 255, .06); background: none; color: #c9c9cf; font-size: calc(13 * var(--s)); text-align: left; cursor: pointer; }
