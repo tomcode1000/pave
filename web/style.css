@@ -48,12 +48,16 @@ button, input { font: inherit; color: inherit; }
 .stage {
   container-type: inline-size;
   position: relative;
-  width: min(100%, 1280px);
+  /* The frames are drawn at slide scale (1280 wide); shown at most 1100 wide they read at a
+     normal website size, the design unchanged, just smaller. */
+  width: min(100%, var(--stage-max, 1100px));
   margin: 0 auto;
   --s: calc(100cqw / 1280);
   --W: 1280;
 }
-.frame { aspect-ratio: 1280 / 634; background: var(--bg) 0 0 / 100% 100% no-repeat; }
+.frame { aspect-ratio: 1280 / 634; isolation: isolate; }
+/* the frame's picture sits behind its content, so fading the picture's edges never dims the text */
+.frame::before { content: ""; position: absolute; inset: 0; z-index: -1; background: var(--bg) 0 0 / 100% 100% no-repeat; pointer-events: none; }
 .a {
   position: absolute; margin: 0;
   left: calc(var(--x) * var(--s)); top: calc(var(--y) * var(--s));
@@ -79,8 +83,8 @@ button, input { font: inherit; color: inherit; }
 .hscroll { display: contents; }
 
 /* Wider than the frame: its edges fade into the ground instead of stopping. */
-@media (min-width: 1300px) {
-  .frame { -webkit-mask-image: linear-gradient(90deg, transparent, #000 48px, #000 calc(100% - 48px), transparent); mask-image: linear-gradient(90deg, transparent, #000 48px, #000 calc(100% - 48px), transparent); }
+@media (min-width: 1120px) {
+  .frame::before { -webkit-mask-image: linear-gradient(90deg, transparent, #000 9%, #000 91%, transparent); mask-image: linear-gradient(90deg, transparent, #000 9%, #000 91%, transparent); }
 }
 
 /* ------------------------------------------------------------------ type */
@@ -371,6 +375,7 @@ table.board { width: 100%; border-collapse: collapse; font-size: 14px; }
   .nav .net { right: 166px; }
   @media (max-width: 480px) { .nav .net { display: none; } }
 
+  .frame:not(.frame--fixed)::before { display: none; }
   .frame:not(.frame--fixed) {
     aspect-ratio: auto; background: none; --s: 1px;
     display: flex; flex-direction: column; align-items: flex-start; gap: 14px; padding: 40px 16px;

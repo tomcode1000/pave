@@ -95,7 +95,7 @@ DESIGNS = {
                       whole=[(140, 408, 740, 582)], pieces={'l-believers': FRAME}),
     'join': dict(pieces={'l-join': FRAME}),
     'footer': dict(text=[((228, 158, 820, 180), 60), ((1005, 630, 1180, 652), 60)],
-                   whole=[(788, 360, 962, 465), (993, 420, 1222, 472)], pieces={'l-footer': (0, 0, 1280, 720)}),
+                   whole=[(788, 360, 962, 465), (993, 420, 1222, 472), (55, 266, 300, 326)], pieces={'l-footer': (0, 0, 1280, 720)}),
     # the app's footer (the frame without its header); the test-tools card is its own picture, shown on test networks only
     'app-footer': dict(text=[((360, 390, 425, 408), 60), ((30, 660, 300, 686), 60)], whole=[(1006, 658, 1252, 688), (905, 300, 1250, 616)],
                        pieces={'app-footer': (0, 95, 1280, 720)}, rawpieces={'tools-card': (905, 300, 1250, 616)}),

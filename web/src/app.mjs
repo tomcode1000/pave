@@ -1584,7 +1584,7 @@ async function boot() {
   for (let i = 0; i < 4; i++) { const el = $(`[data-cap="${i}"]`); if (el) el.textContent = String(Number(S.params['cap' + i]) / 1e6) }
   const links = Object.entries(LINKS).filter(([, u]) => u).map(([k, u]) => `<a href="${u}" target="_blank" rel="noopener">${k}</a>`)
   if (S.dep.explorer) links.unshift(`Contract <a href="${S.dep.explorer}/address/${S.dep.Pave}" target="_blank" rel="noopener">${short(S.dep.Pave)}</a> on ${S.dep.network}`)
-  $('[data-links]').innerHTML = links.join(' · ')
+  const fl = $('[data-links]'); if (fl) fl.innerHTML = links.join(' · ')
 
   document.addEventListener('click', (e) => {
     const b = e.target.closest('[data-act]')
