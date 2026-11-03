@@ -107,7 +107,7 @@ async function type(key, value) {
 /// Clicks an action and waits for its result: the status card (successful or failed), or a message.
 async function click(act, scope = '') {
   await evaluate(`(() => { document.querySelector('[data-toast]').hidden = true; const m = document.querySelector('[data-txm]'); m.hidden = true; m.dataset.state = '' })()`)
-  await evaluate(`(() => { const b = [...document.querySelectorAll('${scope} [data-act="${act}"]')].find((x) => x.offsetParent); if (!b) throw new Error('no visible ${act} button'); b.click() })()`)
+  await evaluate(`(() => { const b = [...document.querySelectorAll('${scope} [data-act="${act}"]')].find((x) => x.offsetParent || x.closest('[data-tools]')); if (!b) throw new Error('no visible ${act} button'); b.click() })()`)
   for (let i = 0; i < 150; i++) {
     await sleep(200)
     const r = await evaluate(`(() => {
