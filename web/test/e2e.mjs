@@ -221,6 +221,7 @@ try {
   const rows = await evaluate(`document.querySelectorAll('[data-lboard] .lrow .vp').length`)
   check(rows >= 3, `the leaderboard lists ${rows} believers`)
   await open(BORROWER, '#/activity')
+  for (let i = 0; i < 40 && !(await evaluate(`document.querySelectorAll('[data-arows] .arow').length`)); i++) await sleep(250)
   const acts = await evaluate(`document.querySelectorAll('[data-arows] .arow').length`)
   check(acts >= 4, `the borrower's activity lists ${acts} transactions`)
   await shot('activity')
