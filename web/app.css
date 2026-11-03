@@ -213,3 +213,6 @@
 .srow > span { display: grid; flex: 1; min-width: 0; }
 .srow small { color: var(--muted); font-size: 12px; }
 .srow > b { color: var(--ink); font-size: 14px; white-space: nowrap; }
+
+/* a window shorter than the page would cut the sidebar card in half: it is in the wallet menu ("Road Levels") instead */
+@media (min-aspect-ratio: 16/9) and (min-width: 861px) { .growcard { display: none; } }

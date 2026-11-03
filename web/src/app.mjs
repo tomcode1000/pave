@@ -766,11 +766,6 @@ function renderRepay() {
   rp('pct', pct + '%')
   rp('owed', usd(r.open ? r.owed : 0n))
   rp('incl', r.open ? `Includes ${usd(fee)} fee (${feePct()})` : 'Nothing to repay right now.')
-  rp('b1', usd(principal)); rp('b2', usd(fee)); rp('b3', usd(r.open ? r.owed : 0n)); rp('b2l', `Fee (${feePct()})`)
-  rp('lv', r.closed ? 'Cracked' : `Level ${r.lv}`)
-  $('[data-rp="lvbar"]').style.width = r.pct + '%'
-  rp('lvpct', r.pct + '%')
-  rp('lvnext', r.closed ? 'Road closed' : r.lv === 3 ? 'Top level reached' : `Progress to Level ${r.lv + 1}`)
   $('[data-act="repay"]').classList.toggle('is-off', !r.open)
 }
 
@@ -855,7 +850,6 @@ async function renderActivity() {
   const pages = Math.max(1, Math.ceil(list.length / 6))
   ACT.page = Math.max(0, Math.min(ACT.page, pages - 1))
   const rows = list.slice(ACT.page * 6, ACT.page * 6 + 6)
-  if (!rows.some((x) => x.id === ACT.sel)) ACT.sel = rows[0]?.id ?? null
   const box = $('[data-arows]')
   box.classList.toggle('arows--empty', !rows.length)
   const kindName = ACT.filter === 'all' ? '' : $(`.filter[data-v="${ACT.filter}"]`).textContent.trim().toLowerCase() + ' '
@@ -870,8 +864,15 @@ async function renderActivity() {
   $('[data-pager]').innerHTML = list.length > 6 ? `<button data-act="apage" data-v="${ACT.page - 1}"${ACT.page ? '' : ' disabled'} aria-label="Previous">‹</button>` +
     nums.map((p) => `<button class="${p === ACT.page ? 'on' : ''}" data-act="apage" data-v="${p}">${p + 1}</button>`).join('') +
     `<button data-act="apage" data-v="${ACT.page + 1}"${ACT.page < pages - 1 ? '' : ' disabled'} aria-label="Next">›</button>` : ''
-  const x = rows.find((r) => r.id === ACT.sel)
-  $('[data-adetail]').innerHTML = x ? `<div class="adet"><h3>${ICONS.repay}Transaction Details</h3>
+}
+
+/// One transaction's details, in a pop-up over the table.
+function openActivity(id) {
+  const x = myActivity().find((r) => r.id === id)
+  if (!x) return
+  ACT.sel = id
+  renderActivity()
+  openSheet('Transaction Details', `<div class="adet">
       <div class="hd2"><span class="sq">${ICONS[x.kind]}</span><span><b>${x.label}</b><small>${stamp(timeOf(x.block))}</small></span></div>
       <div class="amt"><span><small>Amount</small><b>${x.amount}</b></span><span style="text-align: right"><small>Status</small><span class="stp"><i></i>Completed</span></span></div>
       <dl><div><dt>Transaction Hash</dt><dd>${x.hash.slice(0, 6)}…${x.hash.slice(-4)} <button class="copybtn" style="width: calc(14 * var(--s)); height: calc(14 * var(--s)); vertical-align: middle" data-act="copy" data-text="${x.hash}" aria-label="Copy hash">${COPY_ICO}</button></dd></div>
@@ -879,8 +880,7 @@ async function renderActivity() {
       <div><dt>Timestamp</dt><dd>${stamp(timeOf(x.block))}</dd></div>
       <div><dt>Details</dt><dd>${x.note}</dd></div>
       ${txLink(x.hash) ? `<div><dt>Block Explorer</dt><dd><a href="${txLink(x.hash)}" target="_blank" rel="noopener">View on Explorer →</a></dd></div>` : ''}</dl>
-      <button class="btn-line gold-line" data-act="copy" data-text="${txLink(x.hash) || x.hash}">↥ Share Receipt</button></div>`
-    : '<div class="adet adet--empty"><p>Pick a transaction to see its details.</p></div>'
+      <button class="btn-line gold-line" data-act="copy" data-text="${txLink(x.hash) || x.hash}">↥ Share Receipt</button></div>`)
 }
 
 // ------------------------------------------------------------------ notifications: from the events, and from what needs doing now
@@ -942,20 +942,26 @@ async function renderNotes() {
   bell.textContent = String(unread)
   $$('[data-act="nfilter"]').forEach((b) => b.classList.toggle('on', b.dataset.v === NOTE.filter))
   const list = all.filter((n) => NOTE.filter === 'all' || n.cat === NOTE.filter)
-  if (!list.some((n) => n.id === NOTE.sel)) NOTE.sel = list[0]?.id ?? null
   const box = $('[data-nlist]')
   box.classList.toggle('nlist--empty', !list.length)
   const when = (n) => ago(n.block != null ? timeOf(n.block) : n.time)
   box.innerHTML = list.length ? list.slice(0, 6).map((n) => `<button class="nrow${read.has(n.id) ? '' : ' unread'}${n.id === NOTE.sel ? ' on' : ''}" data-act="nrow" data-v="${n.id}">
       <i class="dot"></i><i class="ic${n.ok ? ' ok' : ''}">${ICONS[n.icon]}</i><span><b>${n.title}</b><small>${n.sub}</small></span><time>${when(n)}</time>
       <svg viewBox="0 0 16 16"><use href="#i-chev"/></svg></button>`).join('') : "<p>You're all caught up.</p>"
-  const n = list.find((x) => x.id === NOTE.sel)
-  $('[data-ndetail]').innerHTML = n ? `<div class="ndet"><span class="big">${ICONS[n.icon]}</span><h3>${n.title}</h3><p>${n.sub}</p>
+}
+
+/// One notification, in a pop-up over the list; opening it marks it read.
+function openNote(id) {
+  const n = myNotes().find((x) => x.id === id)
+  if (!n) return
+  NOTE.sel = id
+  const read = readSet()
+  if (!read.has(id)) { read.add(id); store.set(readKey(), [...read].join(',')); badge() }
+  renderNotes()
+  openSheet(n.title, `<div class="ndet"><span class="big">${ICONS[n.icon]}</span><p>${n.sub}</p>
       <dl><div><dt>Amount</dt><dd>${n.amount}</dd></div>${n.hash ? `<div><dt>Transaction Hash</dt><dd>${n.hash.slice(0, 6)}…${n.hash.slice(-4)}</dd></div>` : ''}
       <div><dt>Time</dt><dd>${n.block != null ? stamp(timeOf(n.block)) : 'Now'}</dd></div></dl>
-      ${n.act ? `<button class="btn-gold" data-act="${n.act}"${n.b ? ` data-b="${n.b}"` : ''}>${n.btn}${ARROW}</button>` : `<a class="btn-gold" href="#/${n.go}">${n.btn}${ARROW}</a>`}</div>`
-    : `<div class="ndet"><span class="big">${ICONS.check}</span><h3>All caught up</h3><p>New vouches, loans and rewards show up here.</p></div>`
-  if (n && !read.has(n.id)) { read.add(n.id); store.set(readKey(), [...read].join(',')); badge() }
+      ${n.act ? `<button class="btn-gold" data-act="${n.act}"${n.b ? ` data-b="${n.b}"` : ''}>${n.btn}${ARROW}</button>` : `<a class="btn-gold" href="#/${n.go}" data-act="sheet-close">${n.btn}${ARROW}</a>`}</div>`)
 }
 
 function badge() {
@@ -982,15 +988,13 @@ const wifCompact = (w) => { const n = Number(w) / 1e18; return n >= 1e6 ? (n / 1
 
 function renderBelievers() {
   const list = rankedBelievers()
-  const top = rankedBelievers('backed').slice(0, 3)
-  $('[data-top3]').innerHTML = [0, 1, 2].map((i) => {
-    const b = top[i]
-    return b ? `<button class="pcard" data-act="believer" data-v="${b.addr}"><img class="medal" src="assets/medal-${i + 1}.png" alt="${i + 1}"><img class="ava" src="${avaOf(b.addr)}" alt="">
-      <span class="nm"><b>${b.addr.slice(0, 5)}…${b.addr.slice(-4)}</b><small>${b.backed.size} backed · ${b.repaidBacked} repaid</small></span><span class="val"><b>${wifValue(b.wif)}</b><small>Total $WIF Vouched</small></span></button>`
-      : `<div class="pcard pcard--empty">${i ? 'Open spot' : 'No believers yet'}</div>`
-  }).join('')
   $$('[data-act="sort"]').forEach((b) => b.classList.toggle('on', b.dataset.v === BEL.sort))
-  const rows = list.slice(0, 5)
+  const rows = list.slice(0, 10)
+  $('[data-hall]').hidden = list.length <= 10
+  // the card is as tall as its rows (never shorter than the card beside it)
+  const lb = $('[data-lboard]'), shown = Math.max(rows.length, 1)
+  lb.style.setProperty('--h', 32 + 38 * shown)
+  lb.closest('.acard').style.setProperty('--h', Math.max(296, 56 + 32 + 38 * shown + 18))
   $('[data-lboard]').innerHTML = `<div class="lrow"><span style="padding-left: calc(10 * var(--s))">#</span><span>User</span><span style="text-align: center">${BEL.sort === 'repaid' ? 'Loans Repaid' : 'Total $WIF Backed'}</span><span>People Supported</span><span></span></div>` +
     (rows.length ? rows.map((b, i) => `<div class="lrow${same(b.addr, S.me) ? ' me' : ''}"><span class="rk">${i + 1}</span>
       <span class="us"><img src="${avaOf(b.addr)}" alt=""><span><b>${short(b.addr)}</b><small>${b.repaidBacked} repaid · ${b.slashed} cut</small></span></span>
@@ -1033,9 +1037,7 @@ function renderLend() {
   const it = $('[data-ln="int"]')
   it.textContent = (earned < 0n ? '−' : '') + usd(earned < 0n ? -earned : earned) + (earned > 0n ? ' ↑' : '')
   it.style.color = earned < 0n ? 'var(--red)' : '#4ade80'
-  set('[data-ln="total"]', usd0(p.idle + p.outstanding))
-  set('[data-ln="idle"]', usd0(p.idle))
-  set('[data-ln="out"]', usd0(p.outstanding))
+  set('[data-ln="poolline"]', `Pool ${usd0(p.idle + p.outstanding)} · ${usd0(p.idle)} available · ${usd0(p.outstanding)} lent out`)
   const avail = m.shareValue < p.idle ? m.shareValue : p.idle
   set('[data-ln="avail"]', usd(avail))
   $('[data-ln="wsub"]').innerHTML = m.pendingWif > 0n
@@ -1076,20 +1078,23 @@ function renderVouch() {
   const amt = (val('vouch-amt') ?? '').replace(/,/g, '')
   $$('[data-act="vouch-chip"]').forEach((b) => b.classList.toggle('on', b.dataset.v ? amt === b.dataset.v : !!amt && !['10000', '50000', '100000'].includes(amt)))
   const list = myVouchList()
-  const pick = list.find((x) => same(x.road.addr, S.vouchFor)) ?? list[0]
-  const row = $('[data-vrow]')
-  if (pick) {
-    const [cls, label] = vouchStatus(pick.road)
-    row.className = 'a vrow'
-    row.dataset.act = 'my-vouches'
-    row.innerHTML = `<img src="${avaOf(pick.road.addr)}" alt=""><span class="who2"><b>${short(pick.road.addr)}</b><small>${pick.road.defaulted ? 'Cracked road' : LEVELS[level(pick.road.repaid)]}</small></span>
-      <span class="amt"><b>${wifCompact(pick.amount)} $WIF</b><small>Locked</small></span><span class="rw"><b>+${usd(pick.earned)}</b><small>Rewards</small></span>
-      <span class="okpill ${cls}"><i></i>${label}</span>`
-  } else {
-    row.className = 'a vrow vrow--empty'
-    delete row.dataset.act
-    row.textContent = 'You are not vouching for anyone yet. Enter a friend’s address to lay your first stone.'
-  }
+  // the three latest; the rest are under "View All"
+  $$('[data-vrow]').forEach((row, i) => {
+    const pick = list[i]
+    row.hidden = !pick && i > 0
+    if (pick) {
+      const [cls, label] = vouchStatus(pick.road)
+      row.className = 'a vrow'
+      row.dataset.act = 'my-vouches'
+      row.innerHTML = `<img src="${avaOf(pick.road.addr)}" alt=""><span class="who2"><b>${short(pick.road.addr)}</b><small>${pick.road.defaulted ? 'Cracked road' : LEVELS[level(pick.road.repaid)]}</small></span>
+        <span class="amt"><b>${wifCompact(pick.amount)} $WIF</b><small>Locked</small></span><span class="rw"><b>+${usd(pick.earned)}</b><small>Rewards</small></span>
+        <span class="okpill ${cls}"><i></i>${label}</span>`
+    } else if (i === 0) {
+      row.className = 'a vrow vrow--empty'
+      delete row.dataset.act
+      row.textContent = 'You are not vouching for anyone yet. Enter a friend’s address to lay your first stone.'
+    }
+  })
   set('[data-vc="earned"]', '+' + usd(list.reduce((s, x) => s + x.earned, 0n)))
   set('[data-vc="claim"]', '+' + usd(m.rewards))
   $('[data-act="claim-rewards"]').classList.toggle('is-off', m.rewards === 0n)
@@ -1411,7 +1416,7 @@ const ACTIONS = {
     b.setAttribute('aria-expanded', String(!m.hidden))
   },
   disconnect: () => { hideMenu(); disconnect() },
-  'sheet-close': () => closeSheet(),
+  'sheet-close': (b) => { closeSheet(); if (b.getAttribute('href')) location.hash = b.getAttribute('href') },
   'share-vouch': () => openCard('vouch'),
   'share-highway': () => openCard('highway'),
   'share-card': () => shareCard(),
@@ -1447,10 +1452,10 @@ const ACTIONS = {
   // activity page
   afilter: (b) => { ACT.filter = b.dataset.v; ACT.page = 0; if (VIEW.page !== 'activity') location.hash = '#/activity'; else renderActivity() },
   apage: (b) => { ACT.page = Number(b.dataset.v); renderActivity() },
-  arow: (b) => { ACT.sel = b.dataset.v; renderActivity() },
+  arow: (b) => openActivity(b.dataset.v),
   // notifications page
   nfilter: (b) => { NOTE.filter = b.dataset.v; NOTE.sel = null; renderNotes() },
-  nrow: (b) => { NOTE.sel = b.dataset.v; renderNotes() },
+  nrow: (b) => openNote(b.dataset.v),
   'read-all': () => { store.set(readKey(), myNotes().map((n) => n.id).join(',')); renderNotes(); badge() },
   // profile page
   'copy-me': () => { navigator.clipboard?.writeText(S.me); toast('Address copied.', 'ok') },

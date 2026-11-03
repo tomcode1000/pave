@@ -55,7 +55,7 @@
 .sortpills { display: flex; gap: calc(14 * var(--s)); justify-content: flex-end; }
 .sortpill { height: 100%; padding: 0 calc(14 * var(--s)); border-radius: 999px; border: 1px solid rgba(255, 255, 255, .2); background: none; color: #e4e4e7; font-size: calc(12 * var(--s)); font-weight: 500; cursor: pointer; white-space: nowrap; }
 .sortpill.on { background: var(--gold); border-color: var(--gold); color: var(--gold-ink); font-weight: 600; }
-.lboard { display: grid; grid-template-rows: calc(32 * var(--s)) repeat(5, 1fr); font-size: calc(13 * var(--s)); }
+.lboard { display: grid; grid-template-rows: calc(32 * var(--s)); grid-auto-rows: calc(38 * var(--s)); align-content: start; font-size: calc(13 * var(--s)); }
 .lrow { display: grid; grid-template-columns: calc(52 * var(--s)) 1fr calc(220 * var(--s)) calc(140 * var(--s)) calc(110 * var(--s)); align-items: center; border-bottom: 1px solid rgba(255, 255, 255, .06); color: #c9c9cf; }
 .lrow:first-child { color: #9a9aa1; font-size: calc(12.5 * var(--s)); }
 .lrow .rk { padding-left: calc(10 * var(--s)); color: var(--gold); font-size: calc(15 * var(--s)); font-weight: 600; }
@@ -214,3 +214,13 @@
 .sharecard { width: 100%; aspect-ratio: 1280 / 720; border-radius: 14px; overflow: hidden; background: var(--bg) 0 0 / 100% 100% no-repeat; }
 .qrbox { display: grid; place-items: center; padding: calc(8 * var(--s)); border-radius: calc(14 * var(--s)); background: #fff; }
 .qrbox svg { width: 100%; height: 100%; }
+
+/* details that open in a pop-up (activity, notifications) */
+.sheet .adet, .sheet .ndet { position: static; padding: 0; --s: 1.15px; }
+.sheet .ndet .big { width: 110px; height: 110px; margin: 4px auto 18px; }
+.sheet .ndet dl { margin-top: 18px; }
+.sheet .adet .btn-line, .sheet .ndet .btn-gold { margin-top: 18px; height: 46px; font-size: 15px; }
+.setrow--red b, .setrow--red > svg:first-child { color: var(--red) !important; }
+.arow:hover { background: rgba(246, 182, 58, .04); }
+.nrow:hover { border-color: rgba(246, 182, 58, .45); }
+.linkbtn[hidden], .vrow[hidden] { display: none; }

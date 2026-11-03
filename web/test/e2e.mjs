@@ -202,11 +202,11 @@ try {
   await must('borrow')
   await chainTime(13 * 60)
   await open(STRANGER, '#/notifications')
-  for (let i = 0; i < 40 && !(await evaluate(`!!document.querySelector('[data-ndetail] [data-act="default"]')`)); i++) {
+  for (let i = 0; i < 40 && !(await evaluate(`!!document.querySelector('[data-sheet]:not([hidden]) [data-act="default"]')`)); i++) {
     await evaluate(`(() => { const r = [...document.querySelectorAll('.nrow')].find((x) => x.textContent.includes('Grace Period')); r?.click() })()`)
     await sleep(250)
   }
-  await must('default', '[data-ndetail]')
+  await must('default', '[data-sheet]')
   await shot('defaulted')
   await open(BORROWER, '#/road')
   check((await text('[data-bc="title"]')) === 'Road closed', "the borrower's road is closed")
