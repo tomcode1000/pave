@@ -48,9 +48,7 @@ button, input { font: inherit; color: inherit; }
 .stage {
   container-type: inline-size;
   position: relative;
-  /* The frames are drawn at slide scale (1280 wide); shown at most 1100 wide they read at a
-     normal website size, the design unchanged, just smaller. */
-  width: min(100%, var(--stage-max, 1100px));
+  width: min(100%, 1280px);
   margin: 0 auto;
   --s: calc(100cqw / 1280);
   --W: 1280;
@@ -83,7 +81,7 @@ button, input { font: inherit; color: inherit; }
 .hscroll { display: contents; }
 
 /* Wider than the frame: its edges fade into the ground instead of stopping. */
-@media (min-width: 1120px) {
+@media (min-width: 1300px) {
   .frame::before { -webkit-mask-image: linear-gradient(90deg, transparent, #000 9%, #000 91%, transparent); mask-image: linear-gradient(90deg, transparent, #000 9%, #000 91%, transparent); }
 }
 

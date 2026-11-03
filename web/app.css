@@ -3,7 +3,7 @@
 
 [data-view][hidden] { display: none !important; }
 .appv { min-height: 100vh; background: var(--ground); }
-.app-stage { aspect-ratio: 1280 / 720; --stage-max: min(1100px, calc((100vh - 8px) * 16 / 9)); }
+.app-stage { aspect-ratio: 1280 / 720; }
 .app-stage::before {
   content: ""; position: absolute; left: calc(160 * var(--s)); right: 0; top: calc(86 * var(--s));
   height: 1px; background: rgba(255, 255, 255, .06);
