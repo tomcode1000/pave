@@ -14,7 +14,7 @@ const OUT = join(HERE, 'dist')
 const ROOT = join(HERE, '..')
 
 await mkdir(join(OUT, 'deployments'), { recursive: true })
-for (const f of ['style.css', 'app.css', 'app-pages.css', 'favicon.svg']) await copyFile(join(HERE, f), join(OUT, f))
+for (const f of ['style.css', 'app.css', 'app-pages.css', 'favicon.svg', 'favicon.png']) await copyFile(join(HERE, f), join(OUT, f))
 // The page, with its parts (<!--#include file.html-->) put in place.
 let page = await readFile(join(HERE, 'index.html'), 'utf8')
 const INCLUDE = /<!--#include ([\w.-]+)-->/g

@@ -4,7 +4,7 @@ import { join, normalize, extname } from 'node:path'
 
 // Serves dist/ for local testing: `node serve.mjs` -> http://127.0.0.1:7930
 const ROOT = join(import.meta.dirname, 'dist')
-const TYPES = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.svg': 'image/svg+xml', '.jpg': 'image/jpeg', '.ttf': 'font/ttf' }
+const TYPES = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.svg': 'image/svg+xml', '.png': 'image/png', '.jpg': 'image/jpeg', '.ttf': 'font/ttf' }
 const PORT = Number(process.env.PORT ?? 7930)
 
 createServer(async (req, res) => {
