@@ -33,7 +33,7 @@ const ERRORS = {
   NotOverdue: 'This loan is not past its grace period yet.',
   StalePrice: 'The ETH/USD price feed is stale, so borrowing and defaults are paused. Repaying still works.',
   BadPrice: "The pool's price can't be read right now.",
-  NoPriceHistory: 'Pave needs one more price reading from an earlier hour before it lends. It records one with every vouch, or tap "Record price" and try again next hour.',
+  NoPriceHistory: 'Pave needs one more price reading from an earlier hour before it lends. It records one with every vouch, or use "Record Price" in the wallet menu (test networks) and try again in a minute.',
   BadAmount: "That amount doesn't work here.",
   TransferFailed: 'The token transfer failed. Check your balance.',
   Reentrancy: 'Blocked a re-entrant call.',
