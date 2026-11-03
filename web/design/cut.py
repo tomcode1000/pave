@@ -18,6 +18,8 @@ Patches, in design pixels:
   disc  - circles painted out (the $WIF coin, which the page floats on its own)
 
 A cutout is cut from the original with its circle as the only opaque part (PNG).
+coins: the mockups' shiba coins, replaced by the real $WIF (World is Flat) coin from design/wif-coin.png
+(DexScreener's image for 0x5173…4773), tinted to the frame's gold light, as ellipses (cx, cy, rx, ry).
 A keyed piece is a small icon on a dark card, cut with the dark keyed out (PNG), so it sits on any card.
 """
 import os
@@ -70,6 +72,7 @@ DESIGNS = {
               ring(697, 476, 22), (725, 458, 878, 532),
               (980, 364, 1120, 392), (950, 442, 1066, 488), (1094, 442, 1216, 488), (950, 532, 1066, 578), (1094, 532, 1216, 578)],
         disc=[(1022.5, 137.5, 56)],
+        coins=[(1022.5, 137.5, 54, 54), (816, 275, 20, 22), (1215, 277, 18, 20), (495, 395, 36, 39), (726, 413, 14, 15), (837, 410, 16, 17)],
         cutouts={'coin': (1022.5, 137.5, 54)},
         pieces={'vouch': FRAME, 'hands': (760, 86, 1280, 352), 'vstep-1': (55, 355, 316, 590), 'vstep-2': (368, 355, 606, 590),
                 'vstep-3': (656, 355, 893, 590), 'rewards': (927, 351, 1233, 590)},
@@ -113,6 +116,30 @@ DESIGNS = {
     'app-borrow': dict(pieces={'art-borrow': (700, 86, 1280, 250)}, keyed={'ic-usdg': (245, 310, 294, 359)}),
     'app-repay': dict(text=[((640, 150, 662, 212), 40)], pieces={'art-repay': (640, 86, 1280, 265)}),
 }
+
+
+WIF = cv2.imread(os.path.join(HERE, 'wif-coin.png'), cv2.IMREAD_UNCHANGED)
+
+
+def put_coins(im, s, coins):
+    for cx, cy, rx, ry in coins:
+        w, h = max(2, round(2 * rx * s)), max(2, round(2 * ry * s))
+        coin = cv2.resize(WIF, (w, h), interpolation=cv2.INTER_AREA).astype(np.float32)
+        rgb, a = coin[..., :3], coin[..., 3:] / 255
+        # the coin's light and shade, mapped onto the design's gold, mixed with its own colour
+        lum = (rgb @ np.array([.114, .587, .299], np.float32))[..., None] / 255
+        lum = np.clip((lum - .12) / .55, 0, 1)
+        dark, light = np.array([10, 52, 104], np.float32), np.array([110, 214, 255], np.float32)
+        gold = dark + (light - dark) * lum
+        rgb = gold * .75 + rgb * .25
+        # a soft edge, then over the old coin (which the mask covers fully)
+        m = np.zeros((h, w), np.float32)
+        cv2.ellipse(m, (w // 2, h // 2), (w // 2 - 1, h // 2 - 1), 0, 0, 360, 1, -1)
+        m = cv2.GaussianBlur(m, (0, 0), max(.6, s * .6))[..., None]
+        x0, y0 = round(cx * s) - w // 2, round(cy * s) - h // 2
+        reg = im[y0:y0 + h, x0:x0 + w].astype(np.float32)
+        im[y0:y0 + h, x0:x0 + w] = (reg * (1 - m) + rgb * m).clip(0, 255).astype(np.uint8)
+    return im
 
 
 def clean(im, s, text=(), whole=(), flat=(), disc=()):
@@ -174,6 +201,7 @@ for src, d in DESIGNS.items():
     big = os.path.join(SRC2X, src + '.png')
     s = 2 if os.path.exists(big) else 1
     raw = cv2.imread(big if s > 1 else os.path.join(SRC, src + '.jpg'))
+    raw = put_coins(raw, s, d.get('coins', ()))
     for name, box in d.get('rawpieces', {}).items():
         save(raw, s, name, box); n += 1
     for name, box in d.get('keyed', {}).items():
