@@ -1,0 +1,30 @@
+# The price keeper: records a price reading on Pave every 10 minutes, so borrowing never waits
+# for one (testnet readings count for 24 minutes; mainnet's for 24 hours). Signs with the
+# PAVE_DEPLOYER_KEY repository secret, a key that holds only a little gas.
+name: Keeper
+
+on:
+  schedule:
+    - cron: "*/10 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: keeper
+  cancel-in-progress: false
+
+jobs:
+  poke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm install --no-save --no-package-lock viem@2.57.4
+      - run: node scripts/poke.mjs robinhood-testnet
+        env:
+          PAVE_DEPLOYER_KEY: ${{ secrets.PAVE_DEPLOYER_KEY }}
