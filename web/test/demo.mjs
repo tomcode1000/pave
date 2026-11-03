@@ -46,6 +46,7 @@ try {
   await send('Emulation.setDeviceMetricsOverride', { width: 1440, height: 1200, deviceScaleFactor: 1, mobile: false })
   await send('Page.navigate', { url: APP })
   for (let i = 0; i < 60 && (await evaluate(`document.querySelector('[data-L="total"]').textContent`)) === '—'; i++) await sleep(250)
+  for (let i = 0; i < 50 && (await evaluate(`document.querySelector('[data-connect]').textContent`)) !== 'Use demo wallet'; i++) await sleep(200)
   check((await evaluate(`document.querySelector('[data-connect]').textContent`)) === 'Use demo wallet', 'with no wallet app, the button offers a demo wallet')
   await evaluate(`location.hash = '#/connect'`)
   await sleep(500)
