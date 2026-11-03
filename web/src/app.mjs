@@ -597,7 +597,8 @@ function renderTools() {
   const t = $('[data-tools]')
   if (!t) return
   t.hidden = !S.dep.testTokens
-  set('[data-status]', `${S.dep.network} · block ${S.block.toLocaleString('en-US')}`)
+  const d = $('[data-tools] [data-local]')
+  if (d) d.hidden = !isLocal()
 }
 
 /// The vouch page, filled in for someone.

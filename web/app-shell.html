@@ -35,6 +35,12 @@
             <a role="menuitem" href="#/activity">Activity History</a>
             <a role="menuitem" href="#/notifications">Notifications <b data-badge-n></b></a>
             <a role="menuitem" href="#/">Pave home</a>
+            <div class="menu__tools" data-tools hidden>
+              <small>Test tools (testnet only)</small>
+              <button role="menuitem" data-act="mint-wif">Get Test $WIF</button>
+              <button role="menuitem" data-act="mint-usdg">Get Test USDG</button>
+              <button role="menuitem" data-act="demo-next" data-local>Switch Demo User</button>
+            </div>
             <button role="menuitem" class="menu__out" data-act="disconnect">Disconnect Wallet</button>
           </div>
         </div>
@@ -207,30 +213,6 @@
       <section class="pg" data-pg="map" hidden><div class="a mapslot" data-mapslot style="--x: 160; --y: 86; --w: 1120; --h: 634"></div></section>
     </div>
 
-    <!-- the app footer (Figma frame 25 below its header) -->
-    <footer class="stage frame frame--fixed app-foot" style="--bg: url(assets/app-footer.jpg)">
-      <p class="tx label" style="--x: 366; --t: 297; --f: 14.5">How It Works</p>
-      <button class="a hit" style="--x: 360; --y: 289; --w: 190; --h: 28" data-act="info" data-v="how">How It Works</button>
-      <a class="a hit" href="https://github.com/tomcode1000/pave#readme" target="_blank" rel="noopener" style="--x: 360; --y: 324; --w: 190; --h: 28">Documentation</a>
-      <button class="a hit" style="--x: 360; --y: 358; --w: 190; --h: 28" data-act="info" data-v="faq">FAQ</button>
-      <a class="a hit" href="https://x.com/Toluinweb3" target="_blank" rel="noopener" style="--x: 360; --y: 393; --w: 190; --h: 28">Support</a>
-      <button class="a hit" style="--x: 360; --y: 427; --w: 190; --h: 28" data-act="info" data-v="terms">Terms of Service</button>
-      <button class="a hit" style="--x: 360; --y: 461; --w: 190; --h: 28" data-act="info" data-v="privacy">Privacy Policy</button>
-      <a class="a hit hit--pill" href="https://github.com/tomcode1000/pave" target="_blank" rel="noopener" style="--x: 83; --y: 399; --w: 44; --h: 44">GitHub</a>
-      <a class="a hit hit--pill" href="https://x.com/Toluinweb3" target="_blank" rel="noopener" style="--x: 145; --y: 399; --w: 44; --h: 44">X</a>
-      <a class="a hit hit--pill" href="#/" style="--x: 206; --y: 399; --w: 44; --h: 44">Pave home</a>
-      <a class="a hit hit--pill" data-link="explorer" target="_blank" rel="noopener" href="https://robinhood.com/us/en/chain/" style="--x: 85; --y: 467; --w: 155; --h: 38">Robinhood Chain</a>
-      <div class="a" style="--x: 905; --y: 205; --w: 345; --h: 316" data-tools hidden>
-        <img src="assets/tools-card.jpg" alt="" style="display: block; width: 100%; height: 100%">
-        <button class="a hit hit--pill" style="--x: 32; --y: 137; --w: 281; --h: 43" data-act="mint-wif">Get Test $WIF</button>
-        <button class="a hit hit--pill" style="--x: 32; --y: 192; --w: 281; --h: 43" data-act="mint-usdg">Get Test USDG</button>
-        <button class="a hit hit--pill" style="--x: 32; --y: 247; --w: 281; --h: 43" data-act="demo-next">Switch Demo User</button>
-      </div>
-      <p class="tx tiny" style="--x: 35; --t: 571; --f: 13">© 2026 PAVE. Built on Robinhood Chain.</p>
-      <i class="a dotg" style="--x: 1014; --y: 571; --w: 12; --h: 12" data-status-dot></i>
-      <p class="tx tiny" style="--x: 1036; --t: 572; --f: 12.5; color: #4ade80" data-status>Connecting…</p>
-      <p class="tx tiny" style="--x: 1208; --t: 572; --f: 12.5">v0.1.0</p>
-    </footer>
   </div>
 
   <!-- ============================================================ transaction status (a pop-up, not a page) -->

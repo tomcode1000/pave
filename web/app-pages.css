@@ -204,9 +204,10 @@
 .lvlcard--x.here { box-shadow: 0 0 0 2px var(--red), 0 0 calc(34 * var(--s)) rgba(239, 68, 68, .45); }
 .lvlcard--x.here::after { background: var(--red); color: #fff; }
 
-/* the app footer: its own frame under the page */
-.app-foot { aspect-ratio: 1280 / 625; }
-.app-foot [data-tools][hidden] { display: none; }
+/* test tools in the wallet menu, test networks only */
+.menu__tools { display: grid; gap: 2px; margin-top: 4px; padding-top: 6px; border-top: 1px solid var(--line); }
+.menu__tools[hidden], .menu [data-local][hidden] { display: none; }
+.menu__tools small { padding: 4px 12px; color: var(--gold); font-size: 11px; letter-spacing: .06em; text-transform: uppercase; }
 
 /* share cards inside a sheet */
 .sheet--card { width: min(920px, 100%); }
