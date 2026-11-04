@@ -33,7 +33,7 @@ const ERRORS = {
   NotOverdue: 'This loan is not past its grace period yet.',
   StalePrice: 'The ETH/USD price feed is stale, so borrowing and defaults are paused. Repaying still works.',
   BadPrice: "The pool's price can't be read right now.",
-  NoPriceHistory: 'Pave needs one more price reading from an earlier hour before it lends. It records one with every vouch, or use "Record Price" in the wallet menu (test networks) and try again in a minute.',
+  NoPriceHistory: 'Pave needs a few more price readings from earlier hours before it lends, so a price pumped for a moment can’t count. A keeper records one every few minutes; try again shortly.',
   BadAmount: "That amount doesn't work here.",
   TransferFailed: 'The token transfer failed. Check your balance.',
   Reentrancy: 'Blocked a re-entrant call.',
@@ -1570,8 +1570,8 @@ const ACTIONS = {
   // Withdraw everything that can come out now (what isn't lent out).
   withdraw: () => {
     const m = S.mine, p = S.pool
-    const assets = p.idle + p.outstanding
-    let shares = assets ? (p.idle * p.totalShares) / assets : 0n
+    // the contract values the pool as if it also held 1e12 shares and one USDG unit
+    let shares = (p.idle * (p.totalShares + 10n ** 12n)) / (p.idle + p.outstanding + 1n)
     if (shares > m.shares) shares = m.shares
     return act('Withdraw', async () => {
       if (shares === 0n) throw new Error('Nothing to withdraw right now.')

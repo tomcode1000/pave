@@ -36,7 +36,7 @@ Pave.Credit memory c = pave.creditOf(wallet);
 
 ```sh
 npm install
-npm test            # 27 unit tests
+npm test            # 30 unit tests
 npm run test:fork   # 4 tests on a copy of Robinhood Chain mainnet (real $WIF, USDG, pool, Chainlink)
 ```
 

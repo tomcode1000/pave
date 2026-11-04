@@ -41,9 +41,10 @@ const CONFIG = {
   caps: [USDG(10), USDG(25), USDG(50), USDG(100)] as [bigint, bigint, bigint, bigint],
   feedMaxAge: 26n * HOUR,
   markPeriod: HOUR,
+  minMarks: 1n,
 };
 
-async function setup(opts: { wifIsCurrency1?: boolean } = {}) {
+async function setup(opts: { wifIsCurrency1?: boolean; minMarks?: bigint } = {}) {
   const wallets = await hre.viem.getWalletClients();
   const [deployer, borrower, alice, bob, lender, lender2, stranger] = wallets;
   const wif = await hre.viem.deployContract("MockERC20", ["World is Flat", "WIF", 18]);
@@ -55,7 +56,7 @@ async function setup(opts: { wifIsCurrency1?: boolean } = {}) {
   await feed.write.set([ETH_USD, BigInt(await time.latest())]);
   const pave = await hre.viem.deployContract("Pave", [{
     wif: wif.address, usdg: usdg.address, stateView: sv.address, poolId: zeroHash, wifIsCurrency1: c1,
-    ethUsd: feed.address, ...CONFIG,
+    ethUsd: feed.address, ...CONFIG, ...(opts.minMarks ? { minMarks: opts.minMarks } : {}),
   }]);
   for (const w of [borrower, alice, bob, lender, lender2, stranger]) {
     await wif.write.mint([w.account.address, WIF(1_000_000)]);
@@ -200,6 +201,18 @@ describe("Pave", () => {
       await (await s.as(s.borrower)).write.borrow([USDG(10)]);
     });
 
+    it("needs price marks from several earlier hours, so a few pumped first readings can't count alone", async () => {
+      const s = await setup({ minMarks: 3n });
+      await (await s.as(s.alice)).write.vouch([addr(s.borrower), WIF(50_000)]);
+      await (await s.as(s.lender)).write.deposit([USDG(200)]);
+      await time.increase(3n * DAY);
+      await warm(s);
+      await warm(s);
+      await expect((await s.as(s.borrower)).write.borrow([USDG(10)])).to.be.rejectedWith("NoPriceHistory");
+      await warm(s);
+      await (await s.as(s.borrower)).write.borrow([USDG(10)]);
+    });
+
     it("refuses a stale Chainlink price", async () => {
       const s = await setup();
       await ready(s);
@@ -228,7 +241,7 @@ describe("Pave", () => {
       expect(await s.pave.read.idle()).to.equal(USDG(200.21));
       expect(await s.pave.read.outstanding()).to.equal(0n);
       const lenderShares = await s.pave.read.shares([addr(s.lender)]);
-      expect(await s.pave.read.shareValue([lenderShares])).to.equal(USDG(200.21));
+      near(await s.pave.read.shareValue([lenderShares]), USDG(200.21), 1n);
 
       const p = await s.pave.read.pathOf([addr(s.borrower)]);
       expect(p.repaid).to.equal(1);
@@ -353,6 +366,22 @@ describe("Pave", () => {
       expect((await s.pave.read.vouchesOf([addr(s.borrower)])).length).to.equal(0);
     });
 
+    it("a price dumped at default time cuts no deeper than the loan's own price floor", async () => {
+      const s = await setup();
+      await ready(s, WIF(500_000)); // $500 of $WIF behind a $10 loan
+      await (await s.as(s.borrower)).write.borrow([USDG(10)]);
+      await time.increase(15n * DAY + HOUR);
+      await s.refresh();
+      // a lender dumps $WIF 100x for one transaction to take every voucher's stone
+      await s.sv.write.set([sqrtPriceX96(200_000_000n)]);
+      await (await s.as(s.lender)).write.markDefault([addr(s.borrower)]);
+      // the cut treats $WIF as no cheaper than 40% of the loan's price: 2 x 25,750 $WIF (the debt,
+      // 10,300 $WIF, at that floor), all of it to the lenders; the vouch keeps the rest
+      near(await s.pave.read.pendingWif([addr(s.lender)]), WIF(51_500), 10n ** 6n);
+      expect(await s.wif.read.balanceOf([BURN])).to.equal(0n);
+      expect((await s.pave.read.vouchesOf([addr(s.borrower)]))[0].amount).to.equal(WIF(500_000) - WIF(51_500));
+    });
+
     it("keeps the lenders' claim even after most of the pool withdraws", async () => {
       const s = await setup();
       await ready(s);
@@ -390,9 +419,9 @@ describe("Pave", () => {
       expect(sh1).to.equal(sh2 * 2n); // same price before any fee
       await (await s.as(s.borrower)).write.repay([addr(s.borrower)]);
       // lender part of the fee: 0.21, shared 2:1
-      expect(await s.pave.read.shareValue([sh1])).to.equal(USDG(200.14));
+      near(await s.pave.read.shareValue([sh1]), USDG(200.14), 1n); // to a millionth of a dollar
       await (await s.as(s.lender2)).write.withdraw([sh2]);
-      expect(await s.usdg.read.balanceOf([addr(s.lender2)])).to.equal(USDG(1_000.07));
+      near(await s.usdg.read.balanceOf([addr(s.lender2)]), USDG(1_000.07), 1n);
     });
 
     it("refuses a withdrawal larger than the idle cash", async () => {
@@ -405,6 +434,28 @@ describe("Pave", () => {
       await (await s.as(s.borrower)).write.borrow([USDG(10)]);
       const sh = await s.pave.read.shares([addr(s.lender)]);
       await expect((await s.as(s.lender)).write.withdraw([sh])).to.be.rejectedWith("PoolDry");
+    });
+
+    it("still takes deposits after a default empties the pool", async () => {
+      const s = await setup();
+      await (await s.as(s.alice)).write.vouch([addr(s.borrower), WIF(50_000)]);
+      await (await s.as(s.lender)).write.deposit([USDG(10)]);
+      await time.increase(3n * DAY);
+      await warm(s);
+      await (await s.as(s.borrower)).write.borrow([USDG(10)]);
+      await time.increase(15n * DAY + HOUR);
+      await s.refresh();
+      await (await s.as(s.stranger)).write.markDefault([addr(s.borrower)]);
+      expect((await s.pave.read.idle()) + (await s.pave.read.outstanding())).to.equal(0n);
+      // a new lender gets (nearly) the whole pool; the old shares are worth nothing
+      await (await s.as(s.lender2)).write.deposit([USDG(50)]);
+      const sh2 = await s.pave.read.shares([addr(s.lender2)]);
+      near(await s.pave.read.shareValue([sh2]), USDG(50), 1n);
+      expect(await s.pave.read.shareValue([await s.pave.read.shares([addr(s.lender)])])).to.equal(0n);
+      // the old lender still collects the $WIF from the default
+      expect((await s.pave.read.pendingWif([addr(s.lender)])) > 0n).to.equal(true);
+      await (await s.as(s.lender2)).write.withdraw([sh2]);
+      near(await s.usdg.read.balanceOf([addr(s.lender2)]), USDG(1_000), 1n);
     });
 
     it("refuses a token that skims transfers", async () => {
@@ -452,6 +503,9 @@ describe("Pave", () => {
       const base = { wif: s.wif.address, usdg: s.usdg.address, stateView: s.sv.address, poolId: zeroHash, wifIsCurrency1: true, ethUsd: s.feed.address, ...CONFIG };
       await expect(hre.viem.deployContract("Pave", [{ ...base, ltvBps: 6_000n }])).to.be.rejectedWith("BadConfig");
       await expect(hre.viem.deployContract("Pave", [{ ...base, caps: [USDG(20), USDG(10), USDG(50), USDG(100)] }])).to.be.rejectedWith("BadConfig");
+      await expect(hre.viem.deployContract("Pave", [{ ...base, minMarks: 0n }])).to.be.rejectedWith("BadConfig");
+      await expect(hre.viem.deployContract("Pave", [{ ...base, minMarks: 24n }])).to.be.rejectedWith("BadConfig");
+      await expect(hre.viem.deployContract("Pave", [{ ...base, caps: [USDG(10), USDG(25), USDG(50), 2n ** 64n] }])).to.be.rejectedWith("BadConfig");
       await s.feed.write.setDecimals([18]);
       await expect(hre.viem.deployContract("Pave", [base])).to.be.rejectedWith("BadConfig");
     });

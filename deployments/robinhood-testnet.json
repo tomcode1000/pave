@@ -3,15 +3,16 @@
   "chainId": 46630,
   "rpc": "https://rpc.testnet.chain.robinhood.com",
   "explorer": "https://explorer.testnet.chain.robinhood.com",
-  "Pave": "0x26cbc4c09246839cc8bbce40b1f6330fdd27417c",
-  "wif": "0xe9c663edb1a504042dcedbda574a8ed102140a14",
-  "usdg": "0x2bc91e7b36f4ca2b801cce5c9b48cca415b8aa36",
-  "stateView": "0x77a7ba0cfd4540943d4b7ccd6357ab9f1f5e4475",
-  "ethUsd": "0xb78eed3e5f9bf4a1802cbc5bc712c2e05e21aec2",
+  "Pave": "0xe7e93e0d63ec0ede12e05e3843325d1344cefca1",
+  "wif": "0x5109f637da397b96433888fc3aefb17dbd00e432",
+  "usdg": "0x3a8ec3985f23580c8386ab2811cde330a3d5132d",
+  "stateView": "0x1ca7eab09ccf725a544c66189736452d48997cc1",
+  "ethUsd": "0xccada7573e79ee963218748c793bd10dcbf27726",
   "testTokens": true,
   "params": {
     "feedMaxAge": "93600",
-    "markPeriod": "60",
+    "markPeriod": "300",
+    "minMarks": "2",
     "ltvBps": "4000",
     "vouchMaturity": "120",
     "minVouch": "10000000000000000000000",
@@ -26,6 +27,6 @@
       "100000000"
     ]
   },
-  "deployBlock": 147682417,
-  "deployedAt": "2026-11-03T12:04:48.196Z"
+  "deployBlock": 147826383,
+  "deployedAt": "2026-11-03T17:07:44.525Z"
 }

@@ -1,5 +1,5 @@
 # The price keeper: records a price reading on Pave every 10 minutes, so borrowing never waits
-# for one (testnet readings count for 24 minutes; mainnet's for 24 hours). Signs with the
+# for one (testnet readings count for 2 hours; mainnet's for 24 hours). Signs with the
 # PAVE_DEPLOYER_KEY repository secret, a key that holds only a little gas.
 name: Keeper
 

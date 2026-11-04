@@ -44,6 +44,14 @@ async function setup(overrides: Partial<typeof PARAMS> = {}) {
 
 const addr = (w: { account: { address: `0x${string}` } }) => w.account.address;
 
+/// The keeper's job: a price mark every hour, as many hours as borrowing asks for (12 on mainnet).
+async function keep(s: Awaited<ReturnType<typeof setup>>, hours = Number(PARAMS.minMarks)) {
+  for (let i = 0; i < hours; i++) {
+    await (await s.as(s.stranger)).write.poke();
+    await time.increase(HOUR);
+  }
+}
+
 describe("Pave on a mainnet fork", () => {
   it("reads a sane $WIF price from the Pons pool and Chainlink", async () => {
     const s = await setup();
@@ -71,7 +79,8 @@ describe("Pave on a mainnet fork", () => {
     await (await s.as(s.alice)).write.vouch([addr(s.borrower), WIF(150_000)]);
     await (await s.as(s.bob)).write.vouch([addr(s.borrower), WIF(50_000)]);
     await (await s.as(s.lender)).write.deposit([USDG(100)]);
-    await time.increase(HOUR);
+    await expect((await s.as(s.borrower)).write.borrow([USDG(1)])).to.be.rejectedWith("NoPriceHistory");
+    await keep(s);
     const c = await s.pave.read.creditOf([addr(s.borrower)]);
     console.log(`      200,000 WIF vouched = $${(Number(c.matureUsdg) / 1e6).toFixed(2)}, backed $${(Number(c.backed) / 1e6).toFixed(2)}, can borrow $${(Number(c.available) / 1e6).toFixed(2)}`);
     expect(c.available > 0n).to.equal(true);
@@ -86,10 +95,11 @@ describe("Pave on a mainnet fork", () => {
   });
 
   it("a default burns real $WIF and pays the lender in $WIF", async () => {
-    const s = await setup({ vouchMaturity: 0n, loanTerm: HOUR, grace: HOUR });
+    // the fork is frozen in time, so its Chainlink answer ages as the test jumps ahead
+    const s = await setup({ vouchMaturity: 0n, loanTerm: HOUR, grace: HOUR, feedMaxAge: 72n * HOUR });
     await (await s.as(s.alice)).write.vouch([addr(s.borrower), WIF(200_000)]);
     await (await s.as(s.lender)).write.deposit([USDG(100)]);
-    await time.increase(HOUR); // into the next hour, so the vouch's price mark counts as history
+    await keep(s);
     await (await s.as(s.borrower)).write.borrow([USDG(10)]);
     const burnedBefore = await s.wif.read.balanceOf([BURN]);
     await time.increase(2n * HOUR + 1n);

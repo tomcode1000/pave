@@ -14,7 +14,7 @@ const friend = privateKeyToAccount(generatePrivateKey())
 const W = (account) => createWalletClient({ chain, transport: http(d.rpc), account })
 const TOKEN = parseAbi(['function mint(address,uint256)', 'function approve(address,uint256) returns (bool)', 'function balanceOf(address) view returns (uint256)'])
 const PAVE = parseAbi(['function vouch(address,uint256)', 'function borrow(uint256)', 'function repay(address)', 'function poke()',
-  'function loans(address) view returns (uint256 principal, uint256 fee, uint256 due)',
+  'function loans(address) view returns (uint256 principal, uint256 fee, uint256 due, uint256 debtWif)',
   'function creditOf(address) view returns ((uint256 vouchedWif, uint256 matureWif, uint256 matureUsdg, uint256 backed, uint256 levelCap, uint256 available, uint8 level, uint256 vouchers, (uint32 repaid, uint32 streak, uint32 late, bool defaulted) path))'])
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms))
 const log = (what, hash) => console.log(`${what.padEnd(26)} ${d.explorer}/tx/${hash}`)
@@ -26,6 +26,8 @@ async function tx(account, what, address, abi, functionName, args = []) {
   log(what, hash)
 }
 
+// SKIP_VOUCH=1: a friend's vouch is already in place (an earlier run); go straight to the loan.
+if (!process.env.SKIP_VOUCH) {
 console.log('friend (throwaway):', friend.address)
 const gas = await W(me).sendTransaction({ to: friend.address, value: parseEther('0.002') })
 await pub.waitForTransactionReceipt({ hash: gas })
@@ -34,11 +36,18 @@ const amt = parseEther('100000')
 await tx(friend, 'friend gets test $WIF', d.wif, TOKEN, 'mint', [friend.address, amt])
 await tx(friend, 'friend approves $WIF', d.wif, TOKEN, 'approve', [d.Pave, amt])
 await tx(friend, 'friend vouches 100,000', d.Pave, PAVE, 'vouch', [me.address, amt])
-console.log('waiting for the vouch to mature (2 min) and a price mark from an earlier minute…')
-await sleep(130_000)
-await tx(me, 'record price', d.Pave, PAVE, 'poke')
-await sleep(65_000)
-const c = await pub.readContract({ address: d.Pave, abi: PAVE, functionName: 'creditOf', args: [me.address] })
+}
+console.log(`waiting for the vouch to mature and price marks from ${d.params.minMarks} earlier periods…`)
+let c = { available: 0n }
+for (let i = 0; i < 40; i++) {
+  await sleep(60_000)
+  try {
+    await tx(me, 'record price', d.Pave, PAVE, 'poke')
+    c = await pub.readContract({ address: d.Pave, abi: PAVE, functionName: 'creditOf', args: [me.address] })
+  } catch (e) { console.log('network hiccup, trying again:', e.shortMessage ?? e.message); continue }
+  if (c.available === 0n) continue
+  try { await pub.simulateContract({ address: d.Pave, abi: PAVE, functionName: 'borrow', args: [c.available], account: me }); break } catch {}
+}
 console.log('can borrow', Number(c.available) / 1e6, 'USDG')
 await tx(me, `borrow ${Number(c.available) / 1e6} USDG`, d.Pave, PAVE, 'borrow', [c.available])
 const l = await pub.readContract({ address: d.Pave, abi: PAVE, functionName: 'loans', args: [me.address] })

@@ -163,9 +163,12 @@ try {
   await must('vouch')
 
   console.log('4. The stones mature; the borrower borrows the most the road allows')
+  // borrowing needs price marks from two earlier 5-minute periods (the keeper's job on a real chain)
   await chainTime(3 * 60)
   await poke()
-  await chainTime(70)
+  await chainTime(5 * 60)
+  await poke()
+  await chainTime(5 * 60)
   await open(BORROWER, '#/borrow')
   const limit = await text('[data-bw="limit"]')
   check(limit === 'Available Limit: $10.00', `a dirt road lends up to $10 (${limit})`)

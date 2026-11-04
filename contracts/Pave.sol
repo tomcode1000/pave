@@ -58,6 +58,9 @@ contract Pave {
         uint128 principal; // USDG, 6 decimals. Zero means no open loan.
         uint64 fee;
         uint64 due;
+        /// The debt in $WIF at the price the loan was made at. A default never cuts the vouches as
+        /// if $WIF were below `ltvBps` of that price, so a price dumped at default time can't cut deeper.
+        uint128 debtWif;
     }
 
     /// The road: a borrower's onchain credit history.
@@ -91,6 +94,9 @@ contract Pave {
     uint256 internal constant BPS = 10_000;
     uint256 internal constant Q96 = 2 ** 96;
     uint256 internal constant ACC = 1e36; // $WIF-per-share precision
+    /// Shares per USDG unit at the start. The pool is valued as if it held these shares and one
+    /// more USDG unit, so a pool emptied by a default still takes deposits (at a fresh price).
+    uint256 internal constant VIRTUAL_SHARES = 1e12;
     uint256 public constant MAX_VOUCHERS = 20;
     uint256 public constant SLASH_MULTIPLE = 2; // a default takes up to 2x the debt in $WIF
     uint256 public constant WINDOW_HOURS = 24;
@@ -108,6 +114,9 @@ contract Pave {
     uint256 public immutable feedMaxAge;
     /// Length of one price mark in seconds (3600 on mainnet: 24 marks = the last 24 hours).
     uint256 public immutable markPeriod;
+    /// Borrowing needs price marks from at least this many earlier periods in the window, so a
+    /// price pumped at the first reading of a few quiet hours can't be the only one counted.
+    uint256 public immutable minMarks;
 
     uint256 public immutable ltvBps;
     uint256 public immutable vouchMaturity;
@@ -197,6 +206,7 @@ contract Pave {
         address ethUsd;
         uint256 feedMaxAge;
         uint256 markPeriod;
+        uint256 minMarks;
         uint256 ltvBps;
         uint256 vouchMaturity;
         uint256 minVouch;
@@ -211,7 +221,8 @@ contract Pave {
         if (
             c.wif == address(0) || c.usdg == address(0) || c.stateView == address(0) || c.ethUsd == address(0)
                 || c.ltvBps == 0 || c.ltvBps * SLASH_MULTIPLE > BPS || c.feeBps > 2_000 || c.voucherShareBps > BPS
-                || c.loanTerm == 0 || c.minVouch == 0 || c.feedMaxAge == 0 || c.markPeriod == 0 || c.caps[0] == 0 || c.caps[0] > c.caps[1]
+                || c.loanTerm == 0 || c.minVouch == 0 || c.feedMaxAge == 0 || c.markPeriod == 0 || c.minMarks == 0
+                || c.minMarks >= WINDOW_HOURS || c.caps[3] > type(uint64).max || c.caps[0] == 0 || c.caps[0] > c.caps[1]
                 || c.caps[1] > c.caps[2] || c.caps[2] > c.caps[3]
         ) revert BadConfig();
         if (IAggregator(c.ethUsd).decimals() != 8) revert BadConfig();
@@ -223,6 +234,7 @@ contract Pave {
         ethUsd = IAggregator(c.ethUsd);
         feedMaxAge = c.feedMaxAge;
         markPeriod = c.markPeriod;
+        minMarks = c.minMarks;
         ltvBps = c.ltvBps;
         vouchMaturity = c.vouchMaturity;
         minVouch = c.minVouch;
@@ -305,18 +317,21 @@ contract Pave {
         if (loans[msg.sender].principal != 0) revert LoanOpen();
         if (amount == 0) revert BadAmount();
         uint256 low = _checkpoint();
-        // The price must have been seen in an earlier hour too: with an empty memory, a price
+        // The price must have been seen in earlier hours too: with an empty memory, a price
         // pumped inside this very transaction would be the only one counted.
         if (!_hasHistory(block.timestamp / markPeriod)) revert NoPriceHistory();
+        uint256 eth = _ethUsd();
         (, uint256 matureWif) = _sums(msg.sender);
-        uint256 backed = (_wifToUsdg(matureWif, low, _ethUsd()) * ltvBps) / BPS;
+        uint256 backed = (_wifToUsdg(matureWif, low, eth) * ltvBps) / BPS;
         uint256 cap = _cap(p.repaid);
         if (amount > backed || amount > cap) revert OverLimit();
         if (amount > idle) revert PoolDry();
 
         uint256 fee = _ceilDiv(amount * feeBps, BPS);
+        uint256 debtWif = _usdgToWif(amount + fee, low, eth);
+        if (debtWif > type(uint128).max) revert BadPrice();
         uint64 due = uint64(block.timestamp + loanTerm);
-        loans[msg.sender] = Loan(uint128(amount), uint64(fee), due);
+        loans[msg.sender] = Loan(uint128(amount), uint64(fee), due, uint128(debtWif));
         idle -= amount;
         outstanding += amount;
         _push(usdg, msg.sender, amount);
@@ -377,6 +392,10 @@ contract Pave {
     /// End an unpaid loan once the grace period is over. Anyone may call it.
     /// The vouchers' $WIF is cut pro rata, up to twice the debt's worth: the lenders get up to
     /// the debt's worth, the rest is burned. The borrower's road is closed for good.
+    /// The debt is valued at the low price. The cut, though, never treats $WIF as cheaper than
+    /// `ltvBps` of the price the loan was made at (where the vouches were worth just the debt), so a
+    /// price dumped for one transaction can't take every voucher's stone. A real crash deeper than
+    /// that still sends the lenders everything cut, up to the debt.
     function markDefault(address borrower) external nonReentrant {
         uint256 low = _checkpoint();
         Loan memory l = loans[borrower];
@@ -391,8 +410,9 @@ contract Pave {
 
         uint256 debt = uint256(l.principal) + l.fee;
         uint256 debtWif = _usdgToWif(debt, low, _ethUsd());
+        uint256 floor = (uint256(l.debtWif) * BPS) / ltvBps;
         (uint256 total,) = _sums(borrower);
-        uint256 target = debtWif * SLASH_MULTIPLE;
+        uint256 target = (debtWif < floor ? debtWif : floor) * SLASH_MULTIPLE;
         uint256 slash = target < total ? target : total;
 
         uint256 taken;
@@ -425,14 +445,7 @@ contract Pave {
     function deposit(uint256 amount) external nonReentrant {
         if (amount == 0) revert BadAmount();
         _settle(msg.sender);
-        uint256 assets = idle + outstanding;
-        uint256 minted;
-        if (totalShares == 0) {
-            minted = amount * 1e12;
-        } else {
-            if (assets == 0) revert PoolDry();
-            minted = (amount * totalShares) / assets;
-        }
+        uint256 minted = (amount * (totalShares + VIRTUAL_SHARES)) / (idle + outstanding + 1);
         if (minted == 0) revert BadAmount();
         shares[msg.sender] += minted;
         totalShares += minted;
@@ -446,7 +459,7 @@ contract Pave {
     function withdraw(uint256 shareAmount) external nonReentrant {
         if (shareAmount == 0 || shareAmount > shares[msg.sender]) revert BadAmount();
         _settle(msg.sender);
-        uint256 value = (shareAmount * (idle + outstanding)) / totalShares;
+        uint256 value = _value(shareAmount);
         if (value > idle) revert PoolDry();
         shares[msg.sender] -= shareAmount;
         totalShares -= shareAmount;
@@ -474,6 +487,10 @@ contract Pave {
         totalRewards -= amount;
         _push(usdg, msg.sender, amount);
         emit RewardsClaimed(msg.sender, amount);
+    }
+
+    function _value(uint256 shareAmount) internal view returns (uint256) {
+        return (shareAmount * (idle + outstanding + 1)) / (totalShares + VIRTUAL_SHARES);
     }
 
     function _settle(address lender) internal {
@@ -506,11 +523,12 @@ contract Pave {
     }
 
     function _hasHistory(uint256 hour) internal view returns (bool) {
+        uint256 seen;
         for (uint256 i = 0; i < WINDOW_HOURS; i++) {
             Mark memory m = _marks[i];
-            if (m.hour != 0 && m.hour < hour && m.hour + WINDOW_HOURS > hour) return true;
+            if (m.hour != 0 && m.hour < hour && m.hour + WINDOW_HOURS > hour) seen++;
         }
-        return false;
+        return seen >= minMarks;
     }
 
     function _low(uint256 spot, uint256 hour) internal view returns (uint256 low) {
@@ -551,7 +569,8 @@ contract Pave {
     /// USDG (6 dp) -> $WIF (18 dp), rounded up.
     function _usdgToWif(uint256 usdgAmount, uint256 wifPerEthX96, uint256 ethUsd8) internal pure returns (uint256) {
         uint256 ethWei = _ceilDiv(usdgAmount * 1e20, ethUsd8);
-        return _ceilDiv(ethWei * wifPerEthX96, Q96);
+        uint256 w = _mulDiv(ethWei, wifPerEthX96, Q96);
+        return mulmod(ethWei, wifPerEthX96, Q96) == 0 ? w : w + 1;
     }
 
     // ================================================================== reads
@@ -590,7 +609,7 @@ contract Pave {
 
     /// The USDG value of `shareAmount` pool shares.
     function shareValue(uint256 shareAmount) external view returns (uint256) {
-        return totalShares == 0 ? 0 : (shareAmount * (idle + outstanding)) / totalShares;
+        return _value(shareAmount);
     }
 
     /// Prices as the contract sees them: spot and low WIF-per-ETH (Q96), ETH/USD (8 dp), and

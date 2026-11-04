@@ -22,6 +22,7 @@ const HOUR = 3_600n;
 export const PARAMS = {
   feedMaxAge: 26n * HOUR, // heartbeat 24 h + margin
   markPeriod: HOUR, // 24 hourly price marks
+  minMarks: 12n, // borrowing needs marks from 12 earlier hours of the last 24 (the keeper makes them)
   ltvBps: 4_000n, // borrow up to 40% of the mature vouches' value
   vouchMaturity: 3n * DAY,
   minVouch: 10_000n * 10n ** 18n, // ~ $13 of $WIF
@@ -36,7 +37,8 @@ export const PARAMS = {
 /// Testnet: the same rules on a fast clock, so a whole loan and a default fit in under an hour.
 export const TEST_PARAMS = {
   ...PARAMS,
-  markPeriod: 60n, // price marks a minute long (24 minutes of memory)
+  markPeriod: 5n * 60n, // price marks five minutes long (2 hours of memory)
+  minMarks: 2n,
   vouchMaturity: 2n * 60n,
   loanTerm: 10n * 60n,
   grace: 2n * 60n,
