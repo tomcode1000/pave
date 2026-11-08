@@ -13,7 +13,7 @@ goes to the lenders and the rest is burned.
 
 | Step | Who | What happens |
 |---|---|---|
-| Vouch | Friends | Lock $WIF behind a wallet. It counts once it has stayed 3 days. |
+| Vouch | Friends | Lock $WIF behind a wallet. It counts once it has stayed 1 day. |
 | Borrow | Borrower | Up to 40% of the vouches' value, never above the road's cap. |
 | Repay | Anyone | Pays principal + 3%. The road grows, and vouchers share 30% of the fee. |
 | Default | Anyone, after due date + 1 day | Up to 2x the debt in $WIF is cut: one debt's worth to lenders, the rest burned. |

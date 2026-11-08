@@ -24,7 +24,7 @@ export const PARAMS = {
   markPeriod: HOUR, // 24 hourly price marks
   minMarks: 12n, // borrowing needs marks from 12 earlier hours of the last 24 (the keeper makes them)
   ltvBps: 4_000n, // borrow up to 40% of the mature vouches' value
-  vouchMaturity: 3n * DAY,
+  vouchMaturity: 1n * DAY, // 1 day, so a real vouch made before the 12 Nov deadline can count for a live borrow
   minVouch: 10_000n * 10n ** 18n, // ~ $13 of $WIF
   loanTerm: 14n * DAY,
   grace: 1n * DAY,

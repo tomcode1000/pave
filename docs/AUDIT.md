@@ -110,7 +110,7 @@ than gas. The price defences were re-checked on that assumption.
 
 ## Parameters at launch (`scripts/config.ts`)
 
-40% of mature vouch value · vouches mature after 3 days · minimum vouch 10,000 $WIF · 14-day
+40% of mature vouch value · vouches mature after 1 day · minimum vouch 10,000 $WIF · 14-day
 loans · 1-day grace · 3% fee, 30% of it to the vouchers · road caps $10 / $25 / $50 / $100
 (0 / 1 / 3 / 6 loans repaid) · Chainlink answers up to 26 h old · borrowing needs price marks from 12
 of the last 24 hours.

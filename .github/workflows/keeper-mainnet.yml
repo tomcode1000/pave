@@ -1,0 +1,36 @@
+# The mainnet price keeper: records a price reading on Pave every 30 minutes (each hourly mark
+# keeps the worst price it sees; borrowing needs marks from 12 earlier hours of the last 24).
+# ~$0.003 a reading, ~$0.13 a day. Signs with the PAVE_MAINNET_KEY repository secret, a key that
+# holds only a little gas. Does nothing until deployments/robinhood.json exists.
+name: Keeper (mainnet)
+
+on:
+  schedule:
+    - cron: "5,35 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: keeper-mainnet
+  cancel-in-progress: false
+
+jobs:
+  poke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - id: live
+        run: test -f deployments/robinhood.json && echo "yes=1" >> "$GITHUB_OUTPUT" || echo "Pave isn't on mainnet yet"
+      - if: steps.live.outputs.yes == '1'
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - if: steps.live.outputs.yes == '1'
+        run: npm install --no-save --no-package-lock viem@2.57.4
+      - if: steps.live.outputs.yes == '1'
+        run: node scripts/poke.mjs robinhood
+        env:
+          PAVE_DEPLOYER_KEY: ${{ secrets.PAVE_MAINNET_KEY }}

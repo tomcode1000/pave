@@ -578,7 +578,7 @@ const INFO = () => ({
     <p>You can withdraw any time, up to what isn't lent out at that moment. If a loan isn't repaid, its vouchers' $WIF is cut and the pool's share comes to lenders as $WIF you collect on the Lend page.</p>`],
   risk: ['Lending involves risk', `<p>Returns aren't guaranteed. Loans are backed by $WIF, a memecoin: if a borrower doesn't repay and $WIF has fallen, the $WIF you get can be worth less than the loan.</p>
     <p>The contract was reviewed by its author, not by an outside auditor yet. Lend and vouch only what you can afford to lose.</p>`],
-  how: ['How Pave works', `<p><b>Vouch.</b> Friends lock $WIF behind your wallet. After ${S.params.vouchMaturity != null ? dur(BigInt(S.params.vouchMaturity)).replace('in ', '') : '3 days'} it counts toward your limit: you can borrow ${Number(S.params.ltvBps ?? 4000n) / 100}% of its value, capped by your road's level.</p>
+  how: ['How Pave works', `<p><b>Vouch.</b> Friends lock $WIF behind your wallet. After ${S.params.vouchMaturity != null ? dur(BigInt(S.params.vouchMaturity)).replace('in ', '') : '1 day'} it counts toward your limit: you can borrow ${Number(S.params.ltvBps ?? 4000n) / 100}% of its value, capped by your road's level.</p>
     <p><b>Borrow.</b> Take a small USDG loan from the pool and repay it, plus a ${feePct()} fee, within ${termText()}.</p>
     <p><b>Grow.</b> Each repaid loan paves your road: ${capOf(0)} on a dirt path, ${capOf(1)} on gravel, ${capOf(2)} on cobblestone, ${capOf(3)} on the highway. Your vouchers earn part of every fee.</p>
     <p><b>If a loan isn't repaid,</b> up to twice the debt in $WIF is cut from the stones behind that road: one share goes to the lenders, the rest is burned, and the road cracks.</p>`],
@@ -1317,7 +1317,7 @@ const SPOTS = [
   { x: 375, y: 410, w: 56, h: 60, title: () => 'A person',
     text: () => 'Every pin is a wallet. Connect yours and share your link: friends who believe in you vouch for it.' },
   { x: 485, y: 497, w: 40, h: 36, title: () => '$WIF stones',
-    text: () => `The $WIF friends lock behind you. After ${S.params.vouchMaturity != null ? dur(BigInt(S.params.vouchMaturity)).replace('in ', '') : '3 days'} it lets you borrow 40% of its value, and they earn ${pctOf(S.params.voucherShareBps, '30%')} of every fee you pay.` },
+    text: () => `The $WIF friends lock behind you. After ${S.params.vouchMaturity != null ? dur(BigInt(S.params.vouchMaturity)).replace('in ', '') : '1 day'} it lets you borrow 40% of its value, and they earn ${pctOf(S.params.voucherShareBps, '30%')} of every fee you pay.` },
   { x: 262, y: 452, w: 90, h: 40, title: () => `Dirt path · up to ${capOf(0)}`,
     text: () => 'Where every road starts. Repay one loan on time to lay gravel.' },
   { x: 572, y: 333, w: 80, h: 30, title: () => `Gravel · up to ${capOf(1)}`,
