@@ -1,0 +1,33 @@
+{
+  "network": "Robinhood Chain",
+  "chainId": 4663,
+  "rpc": "https://rpc.mainnet.chain.robinhood.com",
+  "explorer": "https://robinhoodchain.blockscout.com",
+  "Pave": "0xc5e113af0f021045540738125a10bb774f060ed0",
+  "wif": "0x5173b8eA6923c2d40267890D45C46a3480954773",
+  "usdg": "0x5fc5360D0400a0Fd4f2af552ADD042D716F1d168",
+  "stateView": "0xf3334192d15450cdd385c8b70e03f9a6bd9e673b",
+  "ethUsd": "0x78F3556b67E17Df817D51Ef5a990cDaF09E8d3A9",
+  "poolId": "0x71ef4106340f0a3b9c19ec994eef4fc44a1d2513f38faac39d7636b156548c79",
+  "testTokens": false,
+  "params": {
+    "feedMaxAge": "93600",
+    "markPeriod": "3600",
+    "minMarks": "12",
+    "ltvBps": "4000",
+    "vouchMaturity": "86400",
+    "minVouch": "10000000000000000000000",
+    "loanTerm": "1209600",
+    "grace": "86400",
+    "feeBps": "300",
+    "voucherShareBps": "3000",
+    "caps": [
+      "10000000",
+      "25000000",
+      "50000000",
+      "100000000"
+    ]
+  },
+  "deployBlock": 109406539,
+  "deployedAt": "2026-11-08T17:44:05.599Z"
+}
